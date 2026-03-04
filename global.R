@@ -1,6 +1,15 @@
 library(sf)
 library(bs4Dash)
-library(readr)
+library(readxl)
+library(plotly)
+library(dplyr)
 
-df_intensidade_terciario <- sf::read_sf("data_ti.gpkg")
-df_estatisticas_ibge <- readr::read_csv('estatisticas_ibge.csv')
+# Carrega lógica de processamento de dados
+source('data_processor.R')
+
+# Carrega e valida os dados (Contrato de Dados)
+# Se houver erro no Excel, o app interrompe aqui com a mensagem de erro da função
+dados_indicadores <- load_and_validate_indicators("indicadores.xlsx")
+
+# Geometrias base (serão integradas na fase de mapas)
+# df_intensidade_terciario <- sf::read_sf("data_ti.gpkg")

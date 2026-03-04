@@ -5,12 +5,11 @@
 ###################
 
 # Import module server logic
-source('./it-components/it_server.R')
-source('./eixo2-components/eixo2_server.R')
+source('./components/indicadores_server.R')
+
 server <- function(input, output, session) {
   
-  # Initialize the logic for the "it" module (Empresas/Intensidade)
-  empresas_server_logic(input, output, session)
-  eixo2_server_logic(input, output, session)
+  # Inicializa a lógica do explorador de indicadores
+  indicadores_server_logic(input, output, session)
   
 }

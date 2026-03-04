@@ -4,13 +4,12 @@
 # Create the body for the ui using modular components
 ###################
 
-# Carregar módulos de interface
-source('./it-components/it_body.R') 
-source('./eixo2-components/eixo2_body.R') 
+# Carregar módulos de interface unificados
+source('./components/indicadores_ui.R') 
+
 body <- bs4DashBody(
   tabItems(
-    #------- Contéudo do dash it -----
-    it_tab_content(),
-    eixo2_tab_content()
+    # Conteúdo unificado do explorador de indicadores
+    indicadores_tab_content()
   )
 )
