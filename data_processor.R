@@ -13,7 +13,7 @@ load_and_validate_indicators <- function(file_path) {
 
   # 2. Definição do Contrato de Dados (Colunas Obrigatórias)
   cols_obrigatorias <- c(
-    "eixo", "tags", "ano", "unidade_territorial", 
+    "eixo", "tags", "ano", "unidade_territorial", "nome_unidade_territorial",
     "identificador_unidade_territorial", "tipo_visualizacao", 
     "nome_indicador", "valor_indicador", "classes_indicador"
   )
