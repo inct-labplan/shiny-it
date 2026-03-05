@@ -34,9 +34,9 @@ indicadores_tab_content <- function() {
           
           shinyjs::hidden(
             div(id = "step_viz_type",
-                radioButtons("viz_type", "3. Visualizar como:", 
-                             choices = c("Aguardando..." = ""),
-                             inline = TRUE)
+                selectInput("viz_type", "3. Visualizar como:", 
+                            choices = NULL, 
+                            multiple = FALSE)
             )
           ),
           
@@ -95,8 +95,7 @@ indicadores_tab_content <- function() {
             conditionalPanel(
               condition = "input.viz_type == 'Mapa'",
               div(style = "height: 600px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;",
-                  h4("Visualização em Mapa (Em breve...)"))
-              # leafletOutput("mapa_indicador", height = "600px")
+               leafletOutput("mapa_indicador", height = "600px"))
             )
           )
         )

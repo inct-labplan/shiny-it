@@ -7,7 +7,7 @@
 
 library(shiny)
 library(dplyr)
-
+library(leaflet)
 # Carregar componentes globais
 source('./global.R')
 

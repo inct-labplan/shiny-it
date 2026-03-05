@@ -11,8 +11,6 @@ territorios <- list(
   list(ut = "Brasil", nome = "Brasil", id = "BR"),
   list(ut = "Estado", nome = "Pará", id = "15"),
   list(ut = "Estado", nome = "Rio de Janeiro", id = "33"),
-  list(ut = "Região de Integração", nome = "Guajará", id = "RI-GUA"),
-  list(ut = "Região de Integração", nome = "Marajó", id = "RI-MAR"),
   list(ut = "Município", nome = "Belém", id = "1501402"),
   list(ut = "Município", nome = "Ananindeua", id = "1500800"),
   list(ut = "Município", nome = "Rio de Janeiro", id = "3304557")
