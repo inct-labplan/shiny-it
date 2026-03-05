@@ -214,7 +214,7 @@ indicadores_server_logic <- function(input, output, session) {
       
       # Renderização baseada em ano (X) e valor (Y)
       plot_ly(df_plot, 
-              x = ~ano, 
+              x = ~as.integer(ano), 
               y = ~valor_indicador, 
               type = 'scatter', 
               mode = 'lines+markers',
@@ -224,16 +224,24 @@ indicadores_server_logic <- function(input, output, session) {
           title = list(text = paste("Série Histórica:", input$indicador_sel, "<br><sup>", input$nome_unidade_sel, "</sup>"),
                        font = list(size = 14)),
           margin = list(t = 50),
-          xaxis = list(title = "Ano"),
+          xaxis = list(
+            title = "Ano",
+            tickmode = "linear",
+            dtick = 1
+          ),
           yaxis = list(title = "Valor"),
           showlegend = FALSE
         ) %>%
-        config(displayModeBar = FALSE)
+        config(
+          displayModeBar = TRUE,
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d")
+        )
     })
   })
 
   # Motor de Renderização do Mapa (Leaflet)
-  output$mapa_indicador <- renderLeaflet({
+  map_obj <- reactive({
     # Dependência explícita do botão
     input$gerar_viz
     
@@ -243,12 +251,6 @@ indicadores_server_logic <- function(input, output, session) {
       req(input$indicador_sel, input$unidade_sel, input$nome_unidade_sel, input$ano_sel)
       
       # 1. Filtra indicadores na memória
-      # O usuário já escolheu o nível territorial e o nome da unidade territorial (ex: Estado -> SP)
-      # No entanto, se o nível for "Brasil", ele quer o Brasil todo.
-      # Se o nível for "Estado", e ele escolheu "SP", ele quer todos os municípios de SP? 
-      # NÃO: Atualmente o filtro escolhe UMA unidade.
-      # REFINAMENTO: Se ele selecionou um Estado, o join_indicators_with_spatial vai filtrar o ID dele.
-      
       df_filtered <- dados_indicadores %>%
         filter(eixo == input$eixo_sel,
                nome_indicador == input$indicador_sel,
@@ -260,8 +262,9 @@ indicadores_server_logic <- function(input, output, session) {
       if(nrow(df_filtered) == 0) return(NULL)
       
       # 2. Busca Geometria Otimizada (Predicate Pushdown no Parquet)
-      withProgress(message = 'Buscando geometrias...', value = 0.5, {
-        sf_map <- join_indicators_with_spatial(df_filtered, input$unidade_sel)
+      # Nota: Usando isolate para evitar reatividade indesejada
+      sf_map <- withProgress(message = 'Buscando geometrias...', value = 0.5, {
+        join_indicators_with_spatial(df_filtered, input$unidade_sel)
       })
       
       if(is.null(sf_map) || nrow(sf_map) == 0) {
@@ -272,5 +275,9 @@ indicadores_server_logic <- function(input, output, session) {
       # 3. Renderização Leaflet via Função Compartilhada
       build_indicator_map(sf_map, input$indicador_sel)
     })
+  })
+
+  output$mapa_indicador <- renderLeaflet({
+    map_obj()
   })
 }

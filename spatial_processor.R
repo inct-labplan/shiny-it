@@ -135,5 +135,10 @@ build_indicator_map <- function(sf_map, indicator_name) {
       opacity = 0.7, 
       title = indicator_name,
       position = "bottomright"
-    )
+    ) %>%
+    leaflet.extras2::addEasyprint(options = leaflet.extras2::easyprintOptions(
+      exportOnly = TRUE,
+      hideControlContainer = FALSE, # Mantém o container de controles (necessário para a legenda)
+      hidden = list(".leaflet-control-zoom", ".leaflet-control-easyPrint") # Esconde apenas o zoom e o próprio botão de exportar
+    ))
 }

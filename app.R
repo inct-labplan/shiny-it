@@ -5,9 +5,14 @@
 # Used to import your ui and server components; initializes the app.
 ###################
 
+
+
 library(shiny)
 library(dplyr)
 library(leaflet)
+library(htmlwidgets)
+library(leaflet.extras2)
+library(shinyjs)
 # Carregar componentes globais
 source('./global.R')
 

@@ -107,9 +107,8 @@ indicadores_tab_content <- function() {
             conditionalPanel(
               condition = "input.viz_type == 'Mapa'",
               div(style = "height: 500px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;",
-               leafletOutput("mapa_indicador", height = "500px"))
-            )
-          )
+                  leafletOutput("mapa_indicador", height = "500px"))
+            )          )
         )
       )
     )
