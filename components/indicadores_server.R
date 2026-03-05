@@ -233,7 +233,7 @@ indicadores_server_logic <- function(input, output, session) {
   })
 
   # Motor de Renderização do Mapa (Leaflet)
-  output$map_indicador <- renderLeaflet({
+  output$mapa_indicador <- renderLeaflet({
     # Dependência explícita do botão
     input$gerar_viz
     

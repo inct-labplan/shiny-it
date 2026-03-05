@@ -5,6 +5,9 @@ library(plotly)
 library(dplyr)
 library(arrow)
 
+# Mapear caminho de recursos para garantir carregamento de CSS e imagens
+addResourcePath("assets", "www")
+
 # Carrega lógica de processamento de dados
 source('data_processor.R')
 source('spatial_processor.R')

@@ -12,8 +12,7 @@ source('./components/footer.R')
 
 ui <- dashboardPage(
   header = header,
-  sidebar =  sidebar,
+  sidebar = sidebar,
   body = body,
   footer = footer
-  #preloader =  list(html = tagList(spin_1(), "Carregando ..."), color = "#343a40")
 )

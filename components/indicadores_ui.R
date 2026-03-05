@@ -8,6 +8,18 @@ indicadores_tab_content <- function() {
   tabItem(
     tabName = "indicadores_explorador",
     shinyjs::useShinyjs(),
+    tags$style(HTML("
+      /* Reduzir o tamanho da fonte geral */
+      .content-wrapper, .main-sidebar { font-size: 0.9rem; }
+      .card-title { font-size: 1.1rem !important; }
+      .control-label { font-size: 0.85rem !important; margin-bottom: 2px !important; }
+      .form-group { margin-bottom: 0.5rem !important; }
+      .selectize-input { padding: 4px 8px !important; min-height: 32px !important; font-size: 0.9rem !important; }
+      .selectize-dropdown { font-size: 0.9rem !important; }
+      .btn { padding: 4px 8px !important; font-size: 0.9rem !important; }
+      /* Ajustar paddings dos cards */
+      .card-body { padding: 0.75rem !important; }
+    ")),
     fluidRow(
       # Coluna de Filtros
       bs4Card(
@@ -16,17 +28,17 @@ indicadores_tab_content <- function() {
         status = "primary",
         solidHeader = TRUE,
         
-        # Container de Filtros com Altura Fixa para Estabilidade Visual (Item 3.2 da Estratégia)
+        # Container de Filtros com Altura Fixa Reduzida
         div(id = "filters_container",
-          style = "min-height: 580px; display: flex; flex-direction: column; justify-content: flex-start;",
+          style = "min-height: 480px; display: flex; flex-direction: column; justify-content: flex-start;",
           
-          selectInput("eixo_sel", "1. Selecione o Eixo", 
+          selectInput("eixo_sel", "1. Eixo", 
                       choices = c("Carregando..." = ""), 
                       multiple = FALSE),
           
           shinyjs::hidden(
             div(id = "step_indicador",
-                selectInput("indicador_sel", "2. Selecione o Indicador", 
+                selectInput("indicador_sel", "2. Indicador", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -34,7 +46,7 @@ indicadores_tab_content <- function() {
           
           shinyjs::hidden(
             div(id = "step_viz_type",
-                selectInput("viz_type", "3. Visualizar como:", 
+                selectInput("viz_type", "3. Visualização", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -50,7 +62,7 @@ indicadores_tab_content <- function() {
           
           shinyjs::hidden(
             div(id = "step_nome_unidade",
-                selectInput("nome_unidade_sel", "5. Selecione a Unidade", 
+                selectInput("nome_unidade_sel", "5. Unidade", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -58,7 +70,7 @@ indicadores_tab_content <- function() {
           
           shinyjs::hidden(
             div(id = "step_ano",
-                selectInput("ano_sel", "6. Selecione o Ano", choices = NULL)
+                selectInput("ano_sel", "6. Ano", choices = NULL)
             )
           ),
           
@@ -79,23 +91,23 @@ indicadores_tab_content <- function() {
         title = "Visualização de Dados",
         width = 9,
         status = "white",
-        minHeight = "650px", # Estabilidade visual
+        minHeight = "550px", # Estabilidade visual reduzida
         
         div(id = "viz_placeholder",
-            style = "height: 600px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ddd; color: #999;",
-            h4("Selecione os filtros e clique em 'Gerar Visualização'")),
+            style = "height: 500px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ddd; color: #999;",
+            h5("Selecione os filtros e clique em 'Gerar Visualização'")),
         
         shinyjs::hidden(
           div(id = "viz_output_container",
             conditionalPanel(
               condition = "input.viz_type == 'Gráfico'",
-              plotlyOutput("plot_indicador", height = "600px")
+              plotlyOutput("plot_indicador", height = "500px")
             ),
             
             conditionalPanel(
               condition = "input.viz_type == 'Mapa'",
-              div(style = "height: 600px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;",
-               leafletOutput("mapa_indicador", height = "600px"))
+              div(style = "height: 500px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;",
+               leafletOutput("mapa_indicador", height = "500px"))
             )
           )
         )

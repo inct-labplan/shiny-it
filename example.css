@@ -1,0 +1,430 @@
+/* ================================================
+   CSS Personalizado LABPLAN para MkDocs Material
+   Baseado no Guia de Marca LABPLAN 2024
+   ================================================ */
+
+/* =====================================
+   1. CORES DA MARCA
+   ===================================== */
+:root {
+  /* Cores Principais */
+  --labplan-azul-escuro: #1C3162;
+  --labplan-azul-principal: #053984;
+  --labplan-verde: #C0E8A3;
+  --labplan-verde-escuro: #7CC351;
+  --labplan-rosa: #FB7C7B;
+  
+  /* Cores Secundárias */
+  --labplan-azul-claro: #5FC2EB;
+  --labplan-azul-medio: #0088D0;
+  --labplan-verde-medio: #5C8354;
+  --labplan-rosa-claro: #FFB9B9;
+  --labplan-amarelo: #FFCB52;
+  --labplan-bege: #F2DDAC;
+  
+  /* Cores Neutras */
+  --labplan-branco: #FFFFFF;
+  --labplan-cinza-claro: #D1E0ED;
+  --labplan-cinza-medio: #CBC0BE;
+  --labplan-cinza-escuro: #6C6C6C;
+  --labplan-preto: #2F2E2F;
+  
+  /* Cores de Apoio */
+  --labplan-azul-suave: #A6C2D8;
+}
+
+/* =====================================
+   2. TIPOGRAFIA
+   ===================================== */
+
+/* Importar fontes do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Aplicar tipografia principal */
+body {
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  color: var(--labplan-preto);
+  line-height: 1.6;
+}
+
+/* Títulos com hierarquia */
+h1, h2, h3, h4, h5, h6,
+.md-header__title,
+.md-nav__title {
+  font-family: 'Rubik', sans-serif !important;
+  font-weight: 700;
+  color: var(--labplan-azul-escuro);
+  letter-spacing: -0.02em;
+}
+
+h1 { 
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+}
+
+h2 { 
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 3px solid var(--labplan-verde);
+  padding-bottom: 0.5rem;
+}
+
+h3 { 
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+/* Código e elementos técnicos */
+code, pre, .md-code {
+  font-family: 'Roboto Mono', 'Courier New', monospace !important;
+}
+
+/* =====================================
+   3. TEMA PRINCIPAL - CORES DO MKDOCS
+   ===================================== */
+
+/* Tema claro */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--labplan-azul-escuro);
+  --md-primary-fg-color--light: var(--labplan-azul-principal);
+  --md-primary-fg-color--dark: var(--labplan-azul-escuro);
+  --md-primary-bg-color: var(--labplan-branco);
+  --md-primary-bg-color--light: var(--labplan-cinza-claro);
+  
+  --md-accent-fg-color: var(--labplan-verde-escuro);
+  --md-accent-fg-color--transparent: rgba(124, 195, 81, 0.1);
+  --md-accent-bg-color: var(--labplan-branco);
+  --md-accent-bg-color--light: var(--labplan-verde);
+  
+  --md-default-fg-color: var(--labplan-preto);
+  --md-default-fg-color--light: var(--labplan-cinza-escuro);
+  --md-default-fg-color--lighter: var(--labplan-cinza-medio);
+  --md-default-fg-color--lightest: var(--labplan-cinza-claro);
+  --md-default-bg-color: var(--labplan-branco);
+  --md-default-bg-color--light: #f8f9fa;
+  --md-default-bg-color--lighter: var(--labplan-cinza-claro);
+  --md-default-bg-color--lightest: var(--labplan-branco);
+  
+  --md-code-bg-color: rgba(209, 224, 237, 0.3);
+  --md-code-fg-color: var(--labplan-azul-escuro);
+}
+
+/* Tema escuro */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--labplan-azul-principal);
+  --md-primary-fg-color--light: var(--labplan-azul-medio);
+  --md-primary-fg-color--dark: var(--labplan-azul-escuro);
+  
+  --md-accent-fg-color: var(--labplan-verde);
+  --md-accent-fg-color--transparent: rgba(192, 232, 163, 0.1);
+  
+  --md-default-bg-color: var(--labplan-azul-escuro);
+  --md-default-bg-color--light: #253754;
+  --md-default-bg-color--lighter: #2a3f66;
+  
+  --md-code-bg-color: rgba(5, 57, 132, 0.2);
+  --md-code-fg-color: var(--labplan-azul-claro);
+}
+
+/* =====================================
+   4. HEADER E NAVEGAÇÃO
+   ===================================== */
+
+/* Header principal */
+.md-header {
+  background: linear-gradient(135deg, var(--labplan-azul-escuro) 0%, var(--labplan-azul-principal) 100%);
+  box-shadow: 0 2px 8px rgba(28, 49, 98, 0.15);
+}
+
+.md-header__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Logo personalizada */
+.md-header__button.md-logo img,
+.md-nav__title .md-nav__button.md-logo img {
+  filter: brightness(0) invert(1);
+}
+
+/* Navegação lateral */
+.md-nav--primary .md-nav__title {
+  background-color: var(--labplan-azul-escuro);
+  color: var(--labplan-branco);
+  font-weight: 600;
+}
+
+.md-nav__item--active > .md-nav__link {
+  color: var(--labplan-verde-escuro);
+  font-weight: 600;
+}
+
+.md-nav__link:hover,
+.md-nav__link:focus {
+  color: var(--labplan-verde-escuro);
+  background-color: var(--labplan-verde);
+  transition: all 0.2s ease;
+}
+
+/* =====================================
+   5. ELEMENTOS GRÁFICOS DA MARCA
+   ===================================== */
+
+/* Padrão decorativo inspirado nos planos sobrepostos */
+.md-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--labplan-verde) 0%, 
+    var(--labplan-verde) 25%, 
+    var(--labplan-rosa) 25%, 
+    var(--labplan-rosa) 50%, 
+    var(--labplan-amarelo) 50%, 
+    var(--labplan-amarelo) 75%, 
+    var(--labplan-azul-claro) 75%, 
+    var(--labplan-azul-claro) 100%
+  );
+}
+
+/* Elementos de destaque com formas geométricas */
+.md-typeset h1::before {
+  content: '';
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  margin-right: 15px;
+  background: var(--labplan-verde);
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+  vertical-align: middle;
+}
+
+/* =====================================
+   6. CONTEÚDO E COMPONENTES
+   ===================================== */
+
+/* Links */
+.md-typeset a {
+  color: var(--labplan-azul-principal);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.md-typeset a:hover {
+  color: var(--labplan-verde-escuro);
+  border-bottom-color: var(--labplan-verde-escuro);
+}
+
+/* Botões */
+.md-button {
+  background-color: var(--labplan-azul-principal);
+  color: var(--labplan-branco);
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75em 1.5em;
+  transition: all 0.3s ease;
+}
+
+.md-button:hover {
+  background-color: var(--labplan-verde-escuro);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 195, 81, 0.3);
+}
+
+/* Admonitions (Notas, Avisos, etc.) */
+.md-typeset .admonition,
+.md-typeset details {
+  border-left: 4px solid var(--labplan-azul-principal);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-left-color: var(--labplan-azul-medio);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-left-color: var(--labplan-verde-escuro);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-left-color: var(--labplan-amarelo);
+}
+
+.md-typeset .admonition.danger,
+.md-typeset details.danger {
+  border-left-color: var(--labplan-rosa);
+}
+
+/* Tabelas */
+.md-typeset table:not([class]) {
+  border-collapse: collapse;
+  border: 1px solid var(--labplan-cinza-claro);
+}
+
+.md-typeset table:not([class]) th {
+  background: linear-gradient(135deg, var(--labplan-azul-escuro) 0%, var(--labplan-azul-principal) 100%);
+  color: var(--labplan-branco);
+  font-weight: 600;
+  text-align: left;
+  padding: 12px;
+}
+
+.md-typeset table:not([class]) td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--labplan-cinza-claro);
+}
+
+.md-typeset table:not([class]) tr:hover {
+  background-color: var(--labplan-verde);
+}
+
+/* Blocos de código */
+.md-typeset pre {
+  background-color: var(--md-code-bg-color);
+  border: 1px solid var(--labplan-cinza-claro);
+  border-radius: 4px;
+  position: relative;
+  overflow: visible;
+}
+
+.md-typeset pre::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--labplan-azul-principal) 0%, 
+    var(--labplan-verde-escuro) 50%, 
+    var(--labplan-azul-claro) 100%
+  );
+  border-radius: 4px 4px 0 0;
+}
+
+/* =====================================
+   7. FOOTER
+   ===================================== */
+
+.md-footer {
+  background: var(--labplan-azul-escuro);
+  color: var(--labplan-branco);
+}
+
+.md-footer__inner {
+  padding: 2rem 0;
+}
+
+.md-footer-nav {
+  background-color: var(--labplan-azul-principal);
+}
+
+.md-footer-meta {
+  background-color: var(--labplan-azul-escuro);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* =====================================
+   8. ELEMENTOS DECORATIVOS ESPECIAIS
+   ===================================== */
+
+/* Padrão de fundo inspirado nos grafismos */
+.md-main__inner::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background: var(--labplan-verde);
+  opacity: 0.05;
+  clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%);
+  z-index: -1;
+}
+
+/* Badges e tags */
+.md-typeset .md-tag {
+  background-color: var(--labplan-azul-claro);
+  color: var(--labplan-branco);
+  border-radius: 4px;
+  padding: 0.2em 0.6em;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+/* Search */
+.md-search__input {
+  background-color: var(--labplan-branco);
+  border: 2px solid var(--labplan-cinza-claro);
+}
+
+.md-search__input:focus {
+  border-color: var(--labplan-verde-escuro);
+  box-shadow: 0 0 0 3px rgba(124, 195, 81, 0.1);
+}
+
+/* =====================================
+   9. RESPONSIVIDADE
+   ===================================== */
+
+@media screen and (max-width: 768px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  
+  .md-typeset h1::before {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+}
+
+/* =====================================
+   10. ANIMAÇÕES SUAVES
+   ===================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.md-content__inner {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Hover effects */
+.md-nav__link {
+  position: relative;
+  overflow: hidden;
+}
+
+.md-nav__link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--labplan-verde-escuro);
+  transition: width 0.3s ease;
+}
+
+.md-nav__link:hover::after {
+  width: 100%;
+}

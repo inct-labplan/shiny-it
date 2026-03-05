@@ -8,6 +8,6 @@ footer <- dashboardFooter(
   left = a(
     href = "https://ipp.ufrn.br/inctlabplan/sobre/",
     target = "_blank", 
-    HTML("2025, &copy; INCT-LABPLAN")
+    HTML("2026, &copy; INCT-LABPLAN")
   )
 )
