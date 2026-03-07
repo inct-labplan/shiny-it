@@ -11,7 +11,7 @@ library(shiny)
 library(dplyr)
 library(leaflet)
 library(htmlwidgets)
-library(leaflet.extras2)
+library(shinyscreenshot)
 library(shinyjs)
 # Carregar componentes globais
 source('./global.R')
