@@ -5,9 +5,7 @@
 ###################
 
 indicadores_server_logic <- function(input, output, session) {
-  
-  # --- LOGICA DE PROGRESSIVE DISCLOSURE ---
-  
+    
   # 1. Inicializar Eixo e Esconder Outros
   observe({
     req(dados_indicadores)
@@ -188,6 +186,28 @@ indicadores_server_logic <- function(input, output, session) {
   observeEvent(input$gerar_viz, {
     shinyjs::hide("viz_placeholder")
     shinyjs::show("viz_output_container")
+    
+    # Mostrar/Esconder botão de download baseado no tipo
+    if(input$viz_type == "Mapa") {
+      shinyjs::show("download_mapa")
+    } else {
+      shinyjs::hide("download_mapa")
+    }
+  })
+  
+  # Logica de Download do Mapa (shinyscreenshot)
+  observeEvent(input$download_mapa, {
+    req(input$viz_type == "Mapa")
+    
+    filename <- paste0("mapa_", 
+                       gsub(" ", "_", input$indicador_sel), "_", 
+                       input$ano_sel, ".png")
+    
+    shinyscreenshot::screenshot(
+      selector = "#mapa_indicador",
+      filename = filename,
+      id = "mapa_indicador"
+    )
   })
   
   # Motor de Renderização do Gráfico (Plotly)
@@ -221,22 +241,33 @@ indicadores_server_logic <- function(input, output, session) {
               name = input$nome_unidade_sel,
               text = ~paste("Ano:", ano, "<br>Valor:", valor_indicador)) %>%
         layout(
-          title = list(text = paste("Série Histórica:", input$indicador_sel, "<br><sup>", input$nome_unidade_sel, "</sup>"),
+          title = list(text = paste(df_plot$titulo_visualizacao[1], "<br><sup>", input$nome_unidade_sel, "</sup>"),
                        font = list(size = 14)),
-          margin = list(t = 50),
+          margin = list(t = 60, b = 100),
           xaxis = list(
             title = "Ano",
             tickmode = "linear",
             dtick = 1
           ),
           yaxis = list(title = "Valor"),
-          showlegend = FALSE
+          showlegend = FALSE,
+          annotations = list(
+            list(
+              x = 1, y = -0.25,
+              text = paste("Fonte:", df_plot$fonte_dados[1]),
+              showarrow = FALSE,
+              xref = 'paper', yref = 'paper',
+              xanchor = 'right', yanchor = 'auto',
+              font = list(size = 10, color = "gray")
+            )
+          )
         ) %>%
         config(
           displayModeBar = TRUE,
           displaylogo = FALSE,
           modeBarButtonsToRemove = c("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d")
         )
+
     })
   })
 
@@ -273,7 +304,7 @@ indicadores_server_logic <- function(input, output, session) {
       }
       
       # 3. Renderização Leaflet via Função Compartilhada
-      build_indicator_map(sf_map, input$indicador_sel)
+      build_indicator_map(sf_map, input$indicador_sel, input$nome_unidade_sel)
     })
   })
 

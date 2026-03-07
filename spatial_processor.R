@@ -79,8 +79,9 @@ join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = getO
 #' Constrói o Mapa Leaflet para um Indicador
 #' @param sf_map Objeto sf resultante de join_indicators_with_spatial
 #' @param indicator_name Nome do indicador para legendas e popups
+#' @param subtitle Nome da unidade territorial para o subtítulo
 #' @return Um objeto leaflet
-build_indicator_map <- function(sf_map, indicator_name) {
+build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
   if (is.null(sf_map) || nrow(sf_map) == 0) return(NULL)
   
   # Define cores baseadas no valor_indicador
@@ -90,8 +91,6 @@ build_indicator_map <- function(sf_map, indicator_name) {
   )
   
   # HTML do Popup
-  # O uso de HTML puro pode quebrar o testServer (serialização jsonlite)
-  # Se estivermos em teste, podemos usar labels simples
   is_test <- !is.null(getOption("shinyit.test_mode"))
   
   raw_labels <- sprintf(
@@ -105,9 +104,29 @@ build_indicator_map <- function(sf_map, indicator_name) {
     lapply(raw_labels, htmltools::HTML)
   }
   
+  # Metadados: Título e Fonte
+  data_source <- if("fonte_dados" %in% names(sf_map)) sf_map$fonte_dados[1] else "Fonte: LabPlan"
+  map_title <- if("titulo_visualizacao" %in% names(sf_map)) sf_map$titulo_visualizacao[1] else indicator_name
+  
+  # HTML do Título
+  title_html <- paste0(
+    "<div style='background: rgba(255,255,255,0.9); padding: 8px; border-radius: 5px; border: 1px solid #ccc; text-align: center;'>",
+    "<strong style='font-size: 14px;'>", map_title, "</strong>",
+    if(!is.null(subtitle)) paste0("<br/><span style='font-size: 11px; color: #666;'>", subtitle, "</span>") else "",
+    "</div>"
+  )
+
   # Renderização Leaflet
   leaflet(sf_map) %>%
     addProviderTiles(providers$CartoDB.Positron) %>%
+    addControl(
+      html = title_html,
+      position = "topright"
+    ) %>%
+    addControl(
+      html = paste0("<div style='background: rgba(255,255,255,0.8); padding: 5px; font-size: 10px; color: #666;'>", data_source, "</div>"),
+      position = "bottomleft"
+    ) %>%
     addPolygons(
       fillColor = ~pal(valor_indicador),
       weight = 1,

@@ -49,5 +49,7 @@ po/*~
 rsconnect/
 
 # Malhas do IBGE
-
 ibge_malhas/
+
+# Test debug outputs
+tests/testthat/debug_outputs

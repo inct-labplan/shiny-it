@@ -106,6 +106,13 @@ indicadores_tab_content <- function() {
             
             conditionalPanel(
               condition = "input.viz_type == 'Mapa'",
+              div(style = "margin-bottom: 10px; display: flex; justify-content: flex-end;",
+                  shinyjs::hidden(
+                    actionButton("download_mapa", "Baixar Mapa", 
+                                 class = "btn-info btn-sm",
+                                 icon = icon("camera"))
+                  )
+              ),
               div(style = "height: 500px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;",
                   leafletOutput("mapa_indicador", height = "500px"))
             )          )

@@ -53,6 +53,8 @@ for (ind in indicadores) {
           tipo_visualizacao = viz,
           nome_indicador = ind$nome,
           valor_indicador = round(valor, 2),
+          titulo_visualizacao = "Título teste de gráficos",
+          fonte_dados = "IBGE/LabPlan (2024)",
           classes_indicador = "Faixa A, Faixa B, Faixa C", # Placeholder para legenda de mapa
           stringsAsFactors = FALSE
         )

@@ -15,7 +15,8 @@ load_and_validate_indicators <- function(file_path) {
   cols_obrigatorias <- c(
     "eixo", "tags", "ano", "unidade_territorial", "nome_unidade_territorial",
     "identificador_unidade_territorial", "tipo_visualizacao", 
-    "nome_indicador", "valor_indicador", "classes_indicador"
+    "nome_indicador", "valor_indicador", "titulo_visualizacao", 
+    "fonte_dados", "classes_indicador"
   )
 
   # 3. Verificação de Schema (Colunas Faltantes)
