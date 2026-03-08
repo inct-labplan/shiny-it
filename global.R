@@ -5,6 +5,7 @@ library(plotly)
 library(dplyr)
 library(arrow)
 library(leaflet)
+library(shiny)
 
 # Mapear caminho de recursos para garantir carregamento de CSS e imagens
 addResourcePath("assets", "www")
