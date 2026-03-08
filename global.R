@@ -13,6 +13,7 @@ addResourcePath("assets", "www")
 # Carrega lógica de processamento de dados
 source('data_processor.R')
 source('spatial_processor.R')
+source('visualizations.R')
 
 # Carrega e valida os dados (Contrato de Dados)
 # Se houver erro no Excel, o app interrompe aqui com a mensagem de erro da função

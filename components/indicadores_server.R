@@ -229,45 +229,8 @@ indicadores_server_logic <- function(input, output, session) {
                nome_unidade_territorial == input$nome_unidade_sel) %>%
         arrange(ano)
       
-      # Validação de dados para o gráfico
-      if(nrow(df_plot) == 0) return(NULL)
-      
-      # Renderização baseada em ano (X) e valor (Y)
-      plot_ly(df_plot, 
-              x = ~as.integer(ano), 
-              y = ~valor_indicador, 
-              type = 'scatter', 
-              mode = 'lines+markers',
-              name = input$nome_unidade_sel,
-              text = ~paste("Ano:", ano, "<br>Valor:", valor_indicador)) %>%
-        layout(
-          title = list(text = paste(df_plot$titulo_visualizacao[1], "<br><sup>", input$nome_unidade_sel, "</sup>"),
-                       font = list(size = 14)),
-          margin = list(t = 60, b = 100),
-          xaxis = list(
-            title = "Ano",
-            tickmode = "linear",
-            dtick = 1
-          ),
-          yaxis = list(title = "Valor"),
-          showlegend = FALSE,
-          annotations = list(
-            list(
-              x = 1, y = -0.25,
-              text = paste("Fonte:", df_plot$fonte_dados[1]),
-              showarrow = FALSE,
-              xref = 'paper', yref = 'paper',
-              xanchor = 'right', yanchor = 'auto',
-              font = list(size = 10, color = "gray")
-            )
-          )
-        ) %>%
-        config(
-          displayModeBar = TRUE,
-          displaylogo = FALSE,
-          modeBarButtonsToRemove = c("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d")
-        )
-
+      # 3. Renderização Plotly via Função Compartilhada
+      build_indicator_graph(df_plot, input$indicador_sel, input$nome_unidade_sel)
     })
   })
 

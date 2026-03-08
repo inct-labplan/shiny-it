@@ -101,38 +101,8 @@ test_that("A random plotly graph can be rendered and saved as PNG for debugging"
   
   expect_gt(nrow(df_plot), 0)
   
-  # Renderização Plotly (logic from indicadores_server.R)
-  message("Using fonte_dados: ", df_plot$fonte_dados[1])
-  
-  p <- plot_ly(df_plot, 
-              x = ~as.integer(ano), 
-              y = ~valor_indicador, 
-              type = 'scatter', 
-              mode = 'lines+markers',
-              name = random_row$nome_unidade_territorial,
-              text = ~paste("Ano:", ano, "<br>Valor:", valor_indicador)) %>%
-        layout(
-          title = list(text = paste(df_plot$titulo_visualizacao[1], "<br><sup>", random_row$nome_unidade_territorial, "</sup>"),
-                       font = list(size = 14)),
-          margin = list(t = 80, b = 150),
-          xaxis = list(
-            title = "Ano",
-            tickmode = "linear",
-            dtick = 1
-          ),
-          yaxis = list(title = "Valor"),
-          showlegend = FALSE,
-          annotations = list(
-            list(
-              x = 1, y = -0.15,
-              text = paste("Fonte:", df_plot$fonte_dados[1]),
-              showarrow = FALSE,
-              xref = 'paper', yref = 'paper',
-              xanchor = 'right', yanchor = 'top',
-              font = list(size = 10, color = "black")
-            )
-          )
-        )
+  # Renderização Plotly via Função Compartilhada
+  p <- build_indicator_graph(df_plot, random_row$nome_indicador, random_row$nome_unidade_territorial)
   
   expect_s3_class(p, "plotly")
   
