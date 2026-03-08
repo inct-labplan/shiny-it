@@ -5,12 +5,40 @@ library(dplyr)
 library(leaflet)
 library(htmltools)
 
+#' Resolve o caminho do diretório de malhas de forma robusta
+#' @return O caminho do diretório ou o default "ibge_malhas"
+get_malhas_dir <- function() {
+  # 1. Verifica se a opção foi setada manualmente
+  opt_path <- getOption("shinyit.malhas_dir")
+  if (!is.null(opt_path) && dir.exists(opt_path)) {
+    return(opt_path)
+  }
+  
+  # 2. Caminho padrão relativo à raiz do projeto
+  default_path <- "ibge_malhas"
+  if (dir.exists(default_path)) {
+    return(default_path)
+  }
+  
+  # 3. Fallback para execução dentro de tests/testthat/
+  test_path <- "../../ibge_malhas"
+  if (dir.exists(test_path)) {
+    return(test_path)
+  }
+  
+  return(default_path)
+}
+
 #' Une Indicadores com Dados Espaciais (Parquet/WKB) com Filtro na Leitura
 #' @param indicators_df Dataframe de indicadores (já filtrado pelo usuário na memória)
 #' @param level Nível territorial ("Brasil", "Estado", "Município")
-#' @param malhas_dir Diretório contendo os arquivos .parquet
+#' @param malhas_dir Diretório contendo os arquivos .parquet (opcional)
 #' @return Um objeto sf (Simple Features) com os indicadores unidos à geometria ou NULL se não houver dados
-join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = getOption("shinyit.malhas_dir", "ibge_malhas")) {
+join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = NULL) {
+  
+  if (is.null(malhas_dir)) {
+    malhas_dir <- get_malhas_dir()
+  }
   
   # 1. Mapeamento de Arquivos (Baseado nos nomes gerados pelo download_ibge.R)
   file_map <- c(

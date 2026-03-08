@@ -3,6 +3,22 @@ library(plotly)
 library(leaflet)
 library(htmltools)
 library(dplyr)
+library(base64enc)
+
+#' Obtém o URI em base64 do logo LabPlan
+#' @return Uma string URI de dados base64 ou NULL se o arquivo não existir
+get_labplan_logo_uri <- function() {
+  logo_path <- "www/inct-labplan.png"
+  if (!file.exists(logo_path)) {
+    # Tenta um nível acima para suportar execução dentro de tests/testthat
+    logo_path <- "../../www/inct-labplan.png"
+  }
+  
+  if (file.exists(logo_path)) {
+    return(base64enc::dataURI(file = logo_path, mime = "image/png"))
+  }
+  return(NULL)
+}
 
 #' Constrói o Mapa Leaflet para um Indicador
 #' @param sf_map Objeto sf resultante de join_indicators_with_spatial
@@ -36,6 +52,9 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
   data_source <- if("fonte_dados" %in% names(sf_map)) sf_map$fonte_dados[1] else "Fonte: LabPlan"
   map_title <- if("titulo_visualizacao" %in% names(sf_map)) sf_map$titulo_visualizacao[1] else indicator_name
   
+  # Logo base64
+  logo_uri <- get_labplan_logo_uri()
+  
   # HTML do Título com CSS embutido para garantir centralização e larguras consistentes
   title_html <- paste0(
     "<style>",
@@ -52,20 +71,29 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
     "  .leaflet-control-source { margin-bottom: 10px !important; }",
     "  .info.legend.leaflet-control { width: 230px !important; box-sizing: border-box; white-space: normal !important; }",
     "</style>",
-    "<div style='background: rgba(255,255,255,0.9); padding: 8px; border-radius: 5px; border: 1px solid #ccc; text-align: center;'>",
+    "<div style='background: rgba(255,255,255,0.7); padding: 8px; border-radius: 5px; text-align: center;'>",
     "<strong style='font-size: 14px;'>", map_title, "</strong>",
-    if(!is.null(subtitle)) paste0("<br/><span style='font-size: 11px; color: #666;'>", subtitle, "</span>") else "",
     "</div>"
   )
 
   # Renderização Leaflet
-  leaflet(sf_map) %>%
+  m <- leaflet(sf_map) %>%
     addProviderTiles(providers$CartoDB.Positron) %>%
     addControl(
       html = title_html,
       position = "topleft",
       className = "leaflet-control-title"
-    ) %>%
+    )
+
+  if (!is.null(logo_uri)) {
+    m <- m %>% addControl(
+      html = sprintf("<img src='%s' style='height: 60px; opacity: 0.8;'>", logo_uri),
+      position = "bottomleft",
+      className = "leaflet-control-logo"
+    )
+  }
+
+  m %>%
     addControl(
       html = paste0("<div class='sync-width' style='background: rgba(255,255,255,0.8); padding: 5px; font-size: 10px; color: #666; border: 1px solid #ccc; border-radius: 5px;'>", data_source, "</div>"),
       position = "bottomright",
@@ -109,8 +137,10 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
 build_indicator_graph <- function(df_plot, indicator_name, unit_name) {
   if (is.null(df_plot) || nrow(df_plot) == 0) return(NULL)
   
+  logo_uri <- get_labplan_logo_uri()
+  
   # Renderização baseada em ano (X) e valor (Y)
-  plot_ly(df_plot, 
+  p <- plot_ly(df_plot, 
           x = ~as.integer(ano), 
           y = ~valor_indicador, 
           type = 'scatter', 
@@ -134,12 +164,28 @@ build_indicator_graph <- function(df_plot, indicator_name, unit_name) {
           text = paste("Fonte:", df_plot$fonte_dados[1]),
           showarrow = FALSE,
           xref = 'paper', yref = 'paper',
-          xanchor = 'right', yanchor = 'auto',
+          xanchor = 'right', yanchor = 'middle',
           font = list(size = 10, color = "gray")
         )
       )
-    ) %>%
-    config(
+    )
+
+  if (!is.null(logo_uri)) {
+    p <- p %>% layout(
+      images = list(
+        list(
+          source = logo_uri,
+          xref = "paper", yref = "paper",
+          x = 0, y = -0.25,
+          sizex = 0.20, sizey = 0.20,
+          xanchor = "left", yanchor = "middle",
+          opacity = 0.8
+        )
+      )
+    )
+  }
+
+  p %>% config(
       displayModeBar = TRUE,
       displaylogo = FALSE,
       modeBarButtonsToRemove = c("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d")
