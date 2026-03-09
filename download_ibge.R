@@ -24,7 +24,7 @@ tasks <- list(
   list(
     name = "Brasil",
     url = "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2024/Brasil/BR_Pais_2024.zip",
-    rename = c(nome_unidade_territorial = "PAIS"),
+    rename = c(nome_unidade_territorial = "Brasil"),
     add_cols = list(identificador_unidade_territorial = "BR")
   ),
   list(

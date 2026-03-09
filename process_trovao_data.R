@@ -149,7 +149,7 @@ final_output <- all_data %>%
     tipo_visualizacao = "Gráfico",
     unidade_medida = "Proporção/Índice", 
     valor_indicador = round(valor_indicador, 2),
-    classes_mapas = "", 
+    classes_indicador = "", 
     titulo_visualizacao = nome_indicador,
     fonte_dados = "ibge/pnadc (2019-2015)"
   ) %>%
@@ -164,12 +164,14 @@ final_output <- all_data %>%
     descricao_indicador,
     valor_indicador,
     unidade_medida,
-    classes_mapas,
+    classes_indicador,
     titulo_visualizacao,
     fonte_dados
   )
 
-# 7. Salvar output
-write_xlsx(final_output, "indicadores_tro.xlsx")
-
-cat("Processamento concluído. Arquivo 'indicadores_tro.xlsx' gerado com sucesso.\n")
+unique(final_output$unidade_territorial)
+# 7. Finalização
+message("------------------------------------------")
+message("Processamento Socioeconômico concluído!")
+message("Total de registros: ", nrow(final_output))
+message("------------------------------------------")

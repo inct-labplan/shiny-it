@@ -6,7 +6,7 @@ library(dplyr)
 library(writexl)
 
 # Configurações de Caminhos
-input_file <- "data_ti.gpkg"
+input_file <- "dados_tro/data_ti.gpkg"
 output_file <- "indicadores_ti.xlsx"
 
 if (!file.exists(input_file)) {
@@ -36,7 +36,7 @@ df_processed <- df_raw %>%
     # Extração das colunas originais
     nome_indicador = categoria_intensidade_tecnologica,
     valor_indicador = as.numeric(num_estabelecimentos),
-    classes_mapas = num_estabelecimentos_bin, # Mapeado para o padrão do data_generator.R
+    classes_indicador = num_estabelecimentos_bin, # Mapeado para o padrão do data_generator.R
     titulo_visualizacao = categoria_intensidade_tecnologica,
     
     # Metadados adicionais
@@ -55,18 +55,13 @@ df_processed <- df_raw %>%
     descricao_indicador,
     valor_indicador,
     unidade_medida,
-    classes_mapas,
+    classes_indicador,
     titulo_visualizacao,
     fonte_dados,
   )
 
-# 3. Exportação para Excel
-message("Exportando dados para: ", output_file)
-write_xlsx(df_processed, output_file)
-
 # Resumo da operação
 message("------------------------------------------")
-message("Processamento concluído com sucesso!")
-message("Total de registros processados: ", nrow(df_processed))
-message("Arquivo gerado: ", output_file)
+message("Processamento de TI concluído!")
+message("Total de registros: ", nrow(df_processed))
 message("------------------------------------------")
