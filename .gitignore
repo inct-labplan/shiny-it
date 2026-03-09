@@ -50,6 +50,6 @@ rsconnect/
 
 # Malhas do IBGE
 ibge_malhas/
-
+dados_tro/
 # Test debug outputs
 tests/testthat/debug_outputs
