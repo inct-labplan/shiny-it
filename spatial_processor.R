@@ -41,13 +41,29 @@ join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = NULL
   }
   
   # 1. Mapeamento de Arquivos (Baseado nos nomes gerados pelo download_ibge.R)
-  file_map <- c(
+  file_map <- list(
     "Município" = "BR_Municipios_2024.parquet",
     "Estado"    = "BR_UF_2024.parquet",
-    "Brasil"    = "BR_Brasil_2024.parquet"
+    "Brasil"    = "BR_Brasil_2024.parquet",
+    "Região Metropolitana" = "BR_RegiaoMetropolitana_2024.parquet"
   )
   
-  parquet_file <- file.path(malhas_dir, file_map[level])
+  # 1.1 Resolução Robusta do Nível (Fuzzy Matching)
+  target_file <- file_map[[level]]
+  
+  if (is.null(target_file)) {
+    if (grepl("Munici", level, ignore.case = TRUE)) target_file <- file_map[["Município"]]
+    else if (grepl("UF|Estado", level, ignore.case = TRUE)) target_file <- file_map[["Estado"]]
+    else if (grepl("Brasil", level, ignore.case = TRUE)) target_file <- file_map[["Brasil"]]
+    else if (grepl("Metro", level, ignore.case = TRUE)) target_file <- file_map[["Região Metropolitana"]]
+  }
+  
+  if (is.null(target_file)) {
+    warning("Aviso: Nível territorial não mapeado: ", level)
+    return(NULL)
+  }
+  
+  parquet_file <- file.path(malhas_dir, target_file)
   
   if (!file.exists(parquet_file)) {
     warning("Aviso: Arquivo de malha não encontrado: ", parquet_file)
@@ -55,6 +71,7 @@ join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = NULL
   }
   
   # 2. Identifica os IDs necessários para evitar carregar o arquivo todo (Pushdown)
+  # Garante que os IDs sejam strings para comparação consistente
   target_ids <- unique(as.character(indicators_df$identificador_unidade_territorial))
   
   if (length(target_ids) == 0) {
@@ -64,10 +81,25 @@ join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = NULL
   
   # 3. Leitura Otimizada (Predicate Pushdown)
   # Usamos open_dataset para filtrar no nível do arquivo antes de carregar no R
+  # Nota: Convertemos identificador_unidade_territorial para character no filter
+  # se o arrow suportar, ou garantimos que a coluna lida seja tratada adequadamente.
   spatial_df <- tryCatch({
-    arrow::open_dataset(parquet_file) %>%
-      dplyr::filter(identificador_unidade_territorial %in% target_ids) %>%
-      dplyr::collect()
+    ds <- arrow::open_dataset(parquet_file)
+    
+    # Verifica o tipo da coluna no schema para decidir se precisa cast
+    schema <- ds$schema
+    is_numeric_id <- schema$GetFieldByName("identificador_unidade_territorial")$type$id %in% c(2, 3, 4, 5, 6) # Int types
+    
+    if (is_numeric_id) {
+        ds %>%
+          dplyr::filter(identificador_unidade_territorial %in% as.numeric(target_ids)) %>%
+          dplyr::collect() %>%
+          dplyr::mutate(identificador_unidade_territorial = as.character(identificador_unidade_territorial))
+    } else {
+        ds %>%
+          dplyr::filter(identificador_unidade_territorial %in% target_ids) %>%
+          dplyr::collect()
+    }
   }, error = function(e) {
     warning("Erro ao ler arquivo Parquet: ", e$message)
     return(NULL)
@@ -90,9 +122,8 @@ join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = NULL
   # Usamos inner_join para garantir que o objeto SF final contenha apenas
   # registros que possuam tanto geometria quanto dados de indicadores.
   
-  # Garante que não haja duplicidade de colunas que causariam sufixos .x/.y
-  # Queremos as colunas do indicators_df prioritariamente para os dados,
-  # mas a geometria e identificadores do spatial_sf.
+  # Garante que o ID no indicators_df também seja character
+  indicators_df$identificador_unidade_territorial <- as.character(indicators_df$identificador_unidade_territorial)
   
   # Remove colunas duplicadas de spatial_sf antes do join, exceto o ID
   cols_to_keep <- setdiff(colnames(spatial_sf), colnames(indicators_df))

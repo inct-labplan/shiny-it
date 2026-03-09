@@ -149,7 +149,7 @@ final_output <- all_data %>%
     tipo_visualizacao = "Gráfico",
     unidade_medida = "Proporção/Índice", 
     valor_indicador = round(valor_indicador, 2),
-    classes_indicador = "", 
+    classe_indicador = "", 
     titulo_visualizacao = nome_indicador,
     fonte_dados = "ibge/pnadc (2019-2015)"
   ) %>%
@@ -164,7 +164,7 @@ final_output <- all_data %>%
     descricao_indicador,
     valor_indicador,
     unidade_medida,
-    classes_indicador,
+    classe_indicador,
     titulo_visualizacao,
     fonte_dados
   )

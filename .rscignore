@@ -1,0 +1,12 @@
+dados_tro
+dados_tro/**
+tests
+tests/**
+.git
+.git/**
+.Rproj.user
+.Rhistory
+.RData
+renv/library
+renv/python
+renv/staging

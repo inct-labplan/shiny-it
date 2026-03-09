@@ -29,14 +29,14 @@ df_processed <- df_raw %>%
     eixo = "Eixo 1",
     tags = "empresas;setor-produtivo",
     ano = 2025,
-    unidade_territorial = "municipio",
+    unidade_territorial = "Município",
     identificador_unidade_territorial = as.character(code_muni),
     tipo_visualizacao = "Mapa", # Padronizado para o que o app espera (indicadores_server.R)
     descricao_indicador = categoria_intensidade_tecnologica,
     # Extração das colunas originais
     nome_indicador = categoria_intensidade_tecnologica,
     valor_indicador = as.numeric(num_estabelecimentos),
-    classes_indicador = num_estabelecimentos_bin, # Mapeado para o padrão do data_generator.R
+    classe_indicador = num_estabelecimentos_bin, # Mapeado para o padrão do data_generator.R
     titulo_visualizacao = categoria_intensidade_tecnologica,
     
     # Metadados adicionais
@@ -55,7 +55,7 @@ df_processed <- df_raw %>%
     descricao_indicador,
     valor_indicador,
     unidade_medida,
-    classes_indicador,
+    classe_indicador,
     titulo_visualizacao,
     fonte_dados,
   )

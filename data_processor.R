@@ -20,7 +20,7 @@ load_and_validate_indicators <- function(df_or_path) {
     "eixo", "tags", "ano", "unidade_territorial",
     "identificador_unidade_territorial", "tipo_visualizacao", 
     "nome_indicador","descricao_indicador", "valor_indicador", "titulo_visualizacao", 
-    "fonte_dados", "classes_mapas", "classe_indicador"
+    "fonte_dados", "classe_indicador"
   )
 
   # 3. Verificação de Schema (Colunas Faltantes)
@@ -47,8 +47,9 @@ load_and_validate_indicators <- function(df_or_path) {
             paste(invalid_viz, collapse = ", "))
   }
 
-  # 7. Verificação de NAs em colunas obrigatórias (EXCETO classe_indicador)
-  cols_strict_no_na <- setdiff(cols_obrigatorias, "classe_indicador")
+  # 7. Verificação de NAs em colunas obrigatórias (EXCETO colunas que permitem NA)
+  cols_na_permitido <- c("classe_indicador", "identificador_unidade_territorial", "valor_indicador")
+  cols_strict_no_na <- setdiff(cols_obrigatorias, cols_na_permitido)
   
   # Verifica quais colunas possuem NA
   na_counts <- colSums(is.na(df[, cols_strict_no_na]))

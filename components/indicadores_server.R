@@ -114,10 +114,11 @@ indicadores_server_logic <- function(input, output, session) {
       nome_unidade_choices <- unique(df_nome$nome_unidade_territorial)
       selected_nome <- if(length(nome_unidade_choices) == 1) nome_unidade_choices else ""
       
-      updateSelectInput(session, "nome_unidade_sel", 
+      updateSelectizeInput(session, "nome_unidade_sel", 
                         label = new_label,
                         choices = c("Selecione..." = "", nome_unidade_choices),
-                        selected = selected_nome)
+                        selected = selected_nome,
+                        server = TRUE)
       shinyjs::show("step_nome_unidade")
       
       # Esconder níveis abaixo
