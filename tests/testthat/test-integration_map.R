@@ -17,6 +17,7 @@ options(shinyit.test_mode = TRUE)
 
 # Source the function and server logic
 source("../../spatial_processor.R", local = TRUE)
+source("../../visualizations.R", local = TRUE)
 source("../../components/indicadores_server.R", local = TRUE)
 
 # The server logic uses 'dados_indicadores' from the global/calling environment
@@ -54,7 +55,7 @@ test_that("Integration: Map generation from server logic", {
     session$setInputs(gerar_viz = 1)
     
     # 3. Verify Output
-    map_out <- output$map_indicador
+    map_out <- output$mapa_indicador
     
     expect_false(is.null(map_out))
     

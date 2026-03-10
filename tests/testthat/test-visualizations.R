@@ -24,8 +24,11 @@ setwd(old_wd)
 
 # Check if indicators.xlsx exists, if not generate it
 if (!file.exists("../../indicadores.xlsx")) {
-  message("Generating mock indicators.xlsx for testing...")
-  source("../../data_generator.R", local = TRUE)
+  message("Generating indicators.xlsx for testing...")
+  old_wd_gen <- getwd()
+  setwd("../../generate_indicadores")
+  source("gen_indicadores.R", local = TRUE)
+  setwd(old_wd_gen)
 }
 
 # Create output directory

@@ -15,11 +15,11 @@ source('spatial_processor.R')
 source('visualizations.R')
 
 # Carrega os dados já pré-processados e validados (Parquet)
-# A preparação (validação e enriquecimento) é feita via prepare_data.R
+# A preparação (validação e enriquecimento) é feita via generate_indicadores/prepare_data.R
 parquet_file <- "indicadores.parquet"
 
 if (!file.exists(parquet_file)) {
-  stop("Erro: Arquivo ", parquet_file, " não encontrado. Execute prepare_data.R primeiro.")
+  stop("Erro: Arquivo ", parquet_file, " não encontrado. Execute generate_indicadores/gen_indicadores.R primeiro.")
 }
 
 dados_indicadores <- arrow::read_parquet(parquet_file)

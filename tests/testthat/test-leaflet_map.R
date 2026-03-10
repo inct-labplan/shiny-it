@@ -4,6 +4,7 @@ library(sf)
 
 # Source the function to be tested
 source("../../spatial_processor.R", local = TRUE)
+source("../../visualizations.R", local = TRUE)
 
 test_that("build_indicator_map returns a leaflet object", {
   # Create a dummy sf object
