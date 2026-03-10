@@ -1,4 +1,4 @@
-dados_tro
+generate_indicadores/**
 dados_tro/**
 tests
 tests/**
@@ -10,12 +10,5 @@ tests/**
 renv/library
 renv/python
 renv/staging
-
-# Excluir fontes de dados brutas e scripts de processamento pesado se não necessários no server
-indicadores.xlsx
-process_diego_data.R
-process_trovao_data.R
-gen_indicadores.R
-prepare_data.R
-download_ibge.R
+dowload_ibge.R
 genparquet.sh
