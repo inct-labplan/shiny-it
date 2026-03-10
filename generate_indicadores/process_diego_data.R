@@ -5,9 +5,9 @@ library(sf)
 library(dplyr)
 library(writexl)
 
-# Configurações de Caminhos
-input_file <- "dados_tro/data_ti.gpkg"
-output_file <- "indicadores_ti.xlsx"
+# Configurações de Caminhos (Relativos à raiz do projeto)
+root_dir <- ".."
+input_file <- file.path(root_dir, "dados_tro/data_ti.gpkg")
 
 if (!file.exists(input_file)) {
   stop(paste("Erro: Arquivo de entrada não encontrado:", input_file))

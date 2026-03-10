@@ -5,11 +5,13 @@ library(stringr)
 library(writexl)
 library(arrow)
 
-# 1. Configurações e caminhos
-dados_dir <- "dados_tro"
+# 1. Configurações e caminhos (Relativos à raiz do projeto)
+root_dir <- ".."
+dados_dir <- file.path(root_dir, "dados_tro")
+malhas_dir <- file.path(root_dir, "ibge_malhas")
+
 arquivos_tro <- list.files(dados_dir, pattern = "^Dados_total_.*\\.xlsx$", full.names = TRUE)
 dicionario_path <- file.path(dados_dir, "Dicionário de variáveis Observatório ISM (2025).xlsx")
-malhas_dir <- "ibge_malhas"
 
 # 2. Carregar Tabelas de Referência (Malhas)
 df_rm_ref <- read_parquet(file.path(malhas_dir, "BR_RegiaoMetropolitana_2024.parquet"))
@@ -78,6 +80,7 @@ dict <- read_xlsx(dicionario_path) %>%
     nome_indicador = Apelido,
     descricao_indicador = Descrição
   )
+
 # 4. Função para processar cada planilha anual
 processar_planilha <- function(caminho) {
   # Extrair ano do nome do arquivo
@@ -169,7 +172,6 @@ final_output <- all_data %>%
     fonte_dados
   )
 
-unique(final_output$unidade_territorial)
 # 7. Finalização
 message("------------------------------------------")
 message("Processamento Socioeconômico concluído!")

@@ -10,12 +10,16 @@ library(shiny)
 # Mapear caminho de recursos para garantir carregamento de CSS e imagens
 addResourcePath("assets", "www")
 
-# Carrega lógica de processamento de dados
-source('data_processor.R')
+# Carrega lógica de visualização e processamento espacial
 source('spatial_processor.R')
 source('visualizations.R')
 
-# Carrega e valida os dados (Contrato de Dados)
-# Se houver erro no Excel, o app interrompe aqui com a mensagem de erro da função
-dados_indicadores <- enrich_with_territory_names("indicadores.xlsx") %>%
-  load_and_validate_indicators()
+# Carrega os dados já pré-processados e validados (Parquet)
+# A preparação (validação e enriquecimento) é feita via prepare_data.R
+parquet_file <- "indicadores.parquet"
+
+if (!file.exists(parquet_file)) {
+  stop("Erro: Arquivo ", parquet_file, " não encontrado. Execute prepare_data.R primeiro.")
+}
+
+dados_indicadores <- arrow::read_parquet(parquet_file)

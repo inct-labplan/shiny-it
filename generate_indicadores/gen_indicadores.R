@@ -4,6 +4,11 @@
 library(dplyr)
 library(writexl)
 
+# Definir caminhos relativos à raiz do projeto
+# Assume que o script é executado de dentro da pasta generate_indicadores/
+root_dir <- ".."
+output_xlsx <- file.path(root_dir, "indicadores.xlsx")
+
 message("=== Iniciando Geração de Indicadores Consolidados ===")
 
 # 1. Processar Dados de TI (Diego)
@@ -22,11 +27,14 @@ indicadores_consolidado <- bind_rows(
   final_output
 )
 
-output_final <- "indicadores.xlsx"
-write_xlsx(indicadores_consolidado, output_final)
+# Salva na raiz do projeto
+write_xlsx(indicadores_consolidado, output_xlsx)
+
+# 4. Trigger de Validação e Conversão (Parquet)
+source("prepare_data.R")
 
 message("------------------------------------------")
 message("CONSOLIDAÇÃO CONCLUÍDA COM SUCESSO!")
-message("Arquivo gerado: ", output_final)
+message("Arquivo final na raiz: indicadores.parquet")
 message("Total de registros processados: ", nrow(indicadores_consolidado))
 message("------------------------------------------")
