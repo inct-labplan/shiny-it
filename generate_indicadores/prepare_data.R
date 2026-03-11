@@ -1,7 +1,7 @@
 # prepare_data.R
 # Script para enriquecer, validar e converter os dados de indicadores para Parquet
 library(dplyr)
-library(arrow)
+library1(arrow)
 
 source("data_processor.R")
 
@@ -25,5 +25,8 @@ dados_processados <- enrich_with_territory_names(input_file, ibge_dir = ibge_dir
 # 2. Salvar como Parquet
 message("Salvando em formato Parquet: ", output_file)
 write_parquet(dados_processados, output_file)
+
+# 3. Gerar metadados de legenda para Mapas
+source("gen_legend.R")
 
 message("PREPARAÇÃO CONCLUÍDA COM SUCESSO!")

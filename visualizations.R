@@ -28,11 +28,53 @@ get_labplan_logo_uri <- function() {
 build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
   if (is.null(sf_map) || nrow(sf_map) == 0) return(NULL)
   
-  # Define cores baseadas no valor_indicador
-  pal <- colorNumeric(
-    palette = "YlOrRd",
-    domain = sf_map$valor_indicador
-  )
+  # 1. Obter metadados da legenda para este indicador
+  # Assume que map_legend_data está no global.R
+  legend_meta <- if (exists("map_legend_data")) {
+    map_legend_data %>% filter(nome_indicador == indicator_name) %>% arrange(ordem)
+  } else {
+    NULL
+  }
+
+  if (!is.null(legend_meta) && nrow(legend_meta) > 0) {
+    # Caso tenhamos classes pré-definidas
+    # Criamos uma paleta baseada nos intervalos (bins) das classes
+    # O leaflet colorBin ou colorNumeric com domain fixo pode ser usado.
+    # Para garantir que as cores correspondam às classes:
+    
+    # Criamos os breaks baseados nos min/max das classes
+    breaks <- c(legend_meta$min_valor[1], legend_meta$max_valor)
+    # Garante unicidade e ordenação
+    breaks <- unique(sort(breaks))
+    
+    # Se tivermos apenas um break (ex: todos valores iguais), expandimos
+    if(length(breaks) == 1) {
+       breaks <- c(breaks - 1, breaks + 1)
+    }
+
+    pal <- colorBin(
+      palette = "YlOrRd",
+      domain = c(min(breaks), max(breaks)),
+      bins = breaks,
+      na.color = "#808080"
+    )
+    
+    legend_values <- legend_meta$classe_indicador
+    # Para addLegend com colorBin e labels customizados, usamos a paleta e os labels das classes
+    # Mas o addLegend padrão do leaflet para colorBin gera intervalos. 
+    # Para usar exatamente o texto de classe_indicador:
+    
+  } else {
+    # Fallback para o comportamento anterior se não houver metadados
+    vals <- sf_map$valor_indicador
+    domain_range <- range(vals, na.rm = TRUE)
+    if (domain_range[1] == domain_range[2]) {
+      domain_range <- c(domain_range[1] * 0.9, domain_range[1] * 1.1)
+      if(domain_range[1] == 0 && domain_range[2] == 0) domain_range <- c(-1, 1)
+    }
+    pal <- colorNumeric(palette = "YlOrRd", domain = domain_range, na.color = "#808080")
+    legend_values <- sf_map$valor_indicador
+  }
   
   # HTML do Popup
   is_test <- !is.null(getOption("shinyit.test_mode"))
@@ -69,7 +111,23 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
     "  }",
     "  .sync-width { width: 230px !important; box-sizing: border-box; }",
     "  .leaflet-control-source { margin-bottom: 10px !important; }",
-    "  .info.legend.leaflet-control { width: 230px !important; box-sizing: border-box; white-space: normal !important; }",
+    "  .info.legend.leaflet-control { ",
+    "    background: rgba(255,255,255,0.9) !important; ",
+    "    padding: 10px !important; ",
+    "    border-radius: 5px !important; ",
+    "    border: 1px solid #ccc !important; ",
+    "    line-height: 18px !important; ",
+    "    color: #333 !important; ", # Cor mais escura para contraste
+    "    font-weight: bold !important; ",
+    "    box-shadow: 0 0 15px rgba(0,0,0,0.2) !important; ",
+    "  }",
+    "  .info.legend i { ",
+    "    width: 18px !important; ",
+    "    height: 18px !important; ",
+    "    float: left !important; ",
+    "    margin-right: 8px !important; ",
+    "    opacity: 0.7 !important; ",
+    "  }",
     "</style>",
     "<div style='background: rgba(255,255,255,0.7); padding: 8px; border-radius: 5px; text-align: center;'>",
     "<strong style='font-size: 14px;'>", map_title, "</strong>",
@@ -78,7 +136,11 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
 
   # Renderização Leaflet
   m <- leaflet(sf_map) %>%
-    addProviderTiles(providers$CartoDB.Positron) %>%
+    # Opções de camadas base
+    addProviderTiles(providers$CartoDB.Positron, group = "Mapa Claro (Padrão)") %>%
+    addProviderTiles(providers$OpenStreetMap, group = "OpenStreetMap") %>%
+    addProviderTiles(providers$Esri.WorldImagery, group = "Satélite") %>%
+    
     addControl(
       html = title_html,
       position = "topleft",
@@ -93,12 +155,16 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
     )
   }
 
-  m %>%
+  # Adiciona silhueta externa preta da seleção (Union das geometrias)
+  sf_union <- sf::st_union(sf_map)
+
+  m <- m %>%
     addControl(
       html = paste0("<div class='sync-width' style='background: rgba(255,255,255,0.8); padding: 5px; font-size: 10px; color: #666; border: 1px solid #ccc; border-radius: 5px;'>", data_source, "</div>"),
       position = "bottomright",
       className = "leaflet-control-source"
     ) %>%
+    # Camada de Polígonos de Dados
     addPolygons(
       fillColor = ~pal(valor_indicador),
       weight = 1,
@@ -118,15 +184,48 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
         style = list("font-weight" = "normal", padding = "3px 8px"),
         textsize = "15px",
         direction = "auto"
-      )
+      ),
+      group = "Indicadores"
     ) %>%
-    addLegend(
+    # Camada de Silhueta Externa (Black Outline)
+    addPolygons(
+      data = sf_union,
+      fill = FALSE,
+      color = "black",
+      weight = 2,
+      opacity = 1,
+      group = "Contorno Externo"
+    ) %>%
+    # Controle de Camadas
+    addLayersControl(
+      baseGroups = c("Mapa Claro (Padrão)", "OpenStreetMap", "Satélite"),
+      options = layersControlOptions(collapsed = TRUE)
+    )
+
+  # Adicionar legenda customizada se tivermos metadados, senão a padrão
+  if (!is.null(legend_meta) && nrow(legend_meta) > 0) {
+    # Para usar as labels de classe_indicador exatamente
+    m <- m %>% addLegend(
+      pal = pal,
+      values = legend_meta$min_valor, # Usamos os valores mínimos para mapear as cores corretamente
+      labFormat = function(type, cuts, p) { return(legend_meta$classe_indicador) },
+      opacity = 0.7,
+      title = NULL,
+      position = "bottomright",
+      layerId = "map-legend"
+    )
+  } else {
+    m <- m %>% addLegend(
       pal = pal, 
       values = ~valor_indicador, 
       opacity = 0.7, 
-      title = indicator_name,
-      position = "bottomright"
+      title = NULL,
+      position = "bottomright",
+      layerId = "map-legend"
     )
+  }
+  
+  return(m)
 }
 
 #' Constrói o Gráfico Plotly para um Indicador (Série Temporal)

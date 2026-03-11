@@ -4,6 +4,7 @@
 library(sf)
 library(dplyr)
 library(writexl)
+library(stringr)
 
 # Configurações de Caminhos (Relativos à raiz do projeto)
 root_dir <- ".."
@@ -26,6 +27,9 @@ df_processed <- df_raw %>%
   st_drop_geometry() %>%
   # Aplica o de-para das colunas
   mutate(
+    # Transforma 'texto_com_underscore' em 'Texto Com Underscore' (Title Case)
+    categoria_intensidade_tecnologica = str_to_title(gsub("_", " ", categoria_intensidade_tecnologica)),
+    
     eixo = "Eixo 1",
     tags = "empresas;setor-produtivo",
     ano = 2025,

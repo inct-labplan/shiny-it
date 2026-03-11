@@ -154,7 +154,7 @@ final_output <- all_data %>%
     valor_indicador = round(valor_indicador, 2),
     classe_indicador = "", 
     titulo_visualizacao = nome_indicador,
-    fonte_dados = "ibge/pnadc (2019-2015)"
+    fonte_dados = "IBGE;PNADC (2016-2024)"
   ) %>%
   select(
     eixo,

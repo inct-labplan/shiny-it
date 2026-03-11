@@ -134,3 +134,52 @@ join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = NULL
   
   return(final_sf)
 }
+
+#' Carrega Geometrias Espaciais sem indicadores (para fundos/outlines)
+#' @param level Nível territorial ("Brasil", "Estado", "Município")
+#' @param target_ids Opcional: Lista de IDs para filtrar
+#' @return Um objeto sf ou NULL
+load_spatial_geometry <- function(level, target_ids = NULL) {
+  malhas_dir <- get_malhas_dir()
+  
+  file_map <- list(
+    "Município" = "BR_Municipios_2024.parquet",
+    "Estado"    = "BR_UF_2024.parquet",
+    "Brasil"    = "BR_Brasil_2024.parquet",
+    "Região Metropolitana" = "BR_RegiaoMetropolitana_2024.parquet"
+  )
+  
+  target_file <- file_map[[level]]
+  if (is.null(target_file)) return(NULL)
+  
+  parquet_file <- file.path(malhas_dir, target_file)
+  if (!file.exists(parquet_file)) return(NULL)
+  
+  ds <- arrow::open_dataset(parquet_file)
+  
+  if (!is.null(target_ids)) {
+    target_ids <- as.character(target_ids)
+    schema <- ds$schema
+    is_numeric_id <- schema$GetFieldByName("identificador_unidade_territorial")$type$id %in% c(2, 3, 4, 5, 6)
+    
+    if (is_numeric_id) {
+      spatial_df <- ds %>% 
+        dplyr::filter(identificador_unidade_territorial %in% as.numeric(target_ids)) %>% 
+        dplyr::collect()
+    } else {
+      spatial_df <- ds %>% 
+        dplyr::filter(identificador_unidade_territorial %in% target_ids) %>% 
+        dplyr::collect()
+    }
+  } else {
+    spatial_df <- ds %>% dplyr::collect()
+  }
+  
+  if (nrow(spatial_df) == 0) return(NULL)
+  
+  spatial_df$geometry <- sf::st_as_sfc(spatial_df$geometry_wkb, crs = 4674)
+  spatial_sf <- sf::st_as_sf(spatial_df)
+  spatial_sf$geometry_wkb <- NULL
+  
+  return(spatial_sf)
+}
