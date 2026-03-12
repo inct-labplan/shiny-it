@@ -6,38 +6,39 @@ Prova de conceito de um aplicativo Shiny para servir de ferramenta de visualiza�
 O projeto está organizado da seguinte forma:
 
 - **Root**: Contém os arquivos principais do aplicativo Shiny (`app.R`, `ui.R`, `server.R`, `global.R`) e scripts de processamento compartilhado.
+  - `indicadores.parquet`: Base de dados consolidada.
+  - `map_legend.parquet`: Metadados de classes e cores para as legendas dos mapas.
 - **`components/`**: Módulos UI e Server que compõem a interface do aplicativo.
+  - `mapa_module.R`: Módulo específico para visualizações geográficas.
+  - `grafico_module.R`: Módulo específico para visualizações temporais/gráficas.
+  - `sidebar.R`, `header.R`, `body.R`, `footer.R`: Componentes estruturais do layout.
 - **`generate_indicadores/`**: Scripts responsáveis pelo processamento e consolidação dos dados de indicadores.
   - `gen_indicadores.R`: Script mestre que consolida dados de múltiplas fontes.
   - `prepare_data.R`: Valida e converte os dados consolidados para o formato Parquet.
-  - `data_processor.R`, `process_diego_data.R`, `process_trovao_data.R`: Scripts de processamento específico por fonte.
+  - `gen_legend.R`: Calcula quebras de classes e metadados de legenda para consistência visual.
 - **`ibge_malhas/`**: Contém as malhas espaciais do IBGE em formato Parquet para carregamento otimizado.
-  - `download_ibge.R`: Script para baixar e processar malhas do IBGE.
-  - `genparquet.sh`: Script auxiliar para conversão de formatos.
-- **`dados_tro/`**: Diretório para armazenamento dos dados brutos (GPKG, XLSX) utilizados no processamento.
+- **`dados_tro/`**: Diretório para armazenamento dos dados brutos (GPKG, XLSX).
 - **`tests/`**: Testes automatizados utilizando o framework `testthat`.
 - **`www/`**: Ativos estáticos (CSS, imagens).
 
 ## Fluxo de Dados e Dependências
 
-## Fluxo de Dados e Dependências
-
 ### 1. Geração e Padronização de Dados (Pipeline)
 
-Este fluxo descreve a preparação das malhas espaciais e a consolidação dos dados de indicadores.
+Este fluxo descreve a preparação das malhas espaciais e a consolidação dos dados de indicadores com metadados de legenda.
 
 ```mermaid
 graph TD
     subgraph SG1 ["1. Referência Espacial (IBGE)"]
-        D_IBGE["download_ibge.R: Baixa e otimiza malhas"]
-        MALHAS["ibge_malhas/*.parquet: Base geométrica"]
+        D_IBGE["download_ibge.R: Baixa, Valida e Otimiza"]
+        MALHAS["ibge_malhas/*.parquet: Geometrias Limpas"]
         D_IBGE --> MALHAS
     end
 
     subgraph SG2 ["2. Processamento de Fontes"]
         GEN["gen_indicadores.R: Script mestre de consolidação"]
-        P_DIEGO["process_diego_data.R: Processa dados TI (GeoPackage)"]
-        P_TROVAO["process_trovao_data.R: Processa Socioeconômico (Excel)"]
+        P_DIEGO["process_diego_data.R: Dados TI (Formatado)"]
+        P_TROVAO["process_trovao_data.R: Dados Socioeconômicos"]
         
         IN_TI["dados_tro/data_ti.gpkg"]
         IN_SOCIO["dados_tro/Dados_total_*.xlsx"]
@@ -52,8 +53,10 @@ graph TD
 
     subgraph SG3 ["3. Consolidação e Parquet"]
         XLSX["indicadores.xlsx: Tabela consolidada"]
-        PREP["prepare_data.R: Valida e Enriquece nomes"]
-        PARQUET["indicadores.parquet: Arquivo final otimizado"]
+        PREP["prepare_data.R: Enriquece e Converte"]
+        PARQUET["indicadores.parquet: Dados finais"]
+        LEG_GEN["gen_legend.R: Gera quebras de classes"]
+        LEG_PQ["map_legend.parquet: Metadados da legenda"]
 
         P_DIEGO --> GEN
         P_TROVAO --> GEN
@@ -61,48 +64,46 @@ graph TD
         XLSX --> PREP
         MALHAS -.->|Enriquece Nomes| PREP
         PREP --> PARQUET
+        PREP --> LEG_GEN
+        LEG_GEN --> LEG_PQ
     end
 ```
-
-**Descrição do Pipeline:**
-1.  **IBGE:** O script `download_ibge.R` prepara malhas leves (simplificadas) em formato Parquet.
-2.  **Processamento:** `gen_indicadores.R` coordena a leitura de dados brutos de TI e Socioeconômicos, utilizando as malhas para validar códigos territoriais.
-3.  **Finalização:** `prepare_data.R` converte os resultados para Parquet, enriquecendo a tabela com nomes amigáveis (ex: transformando IDs em nomes de cidades).
 
 ---
 
 ### 2. Lógica do Aplicativo (Runtime)
 
-O app carrega geometrias pesadas apenas sob demanda para manter a performance.
+O app utiliza os metadados pré-calculados para uma renderização rápida e modularizada.
 
 ```mermaid
 graph LR
-    DB["indicadores.parquet: Dados tabulares"]
-    MALHAS_DB["ibge_malhas/*.parquet: Geometrias"]
+    DB["indicadores.parquet"]
+    LEG_DB["map_legend.parquet"]
+    MALHAS_DB["ibge_malhas/*.parquet"]
 
     subgraph Global ["global.R (Inicialização)"]
-        LOAD["Carga de indicadores.parquet em memória"]
+        LOAD["Carga de Dados e Legendas"]
         SP["spatial_processor.R: Lógica espacial"]
         VIZ["visualizations.R: Lógica visual"]
     end
 
     DB --> LOAD
-    LOAD -->|dados_indicadores| Server
+    LEG_DB --> LOAD
+    LOAD -->|dados_indicadores| M_MAPA
+    LOAD -->|dados_indicadores| M_GRAFICO
+    LOAD -->|map_legend_data| VIZ
 
-    subgraph Server ["Server (Módulos)"]
+    subgraph Server ["Server (App)"]
         direction TB
-        F1["Filtros em Cascata: Eixo > Indicador > Localidade"] --> F2["Gatilho de Renderização (Botão)"]
-        
-        subgraph Render ["Motor de Renderização"]
-            direction LR
-            G_LOGIC{Tipo Viz?}
-            G_LOGIC -->|Gráfico| PLOT["Plotly: Gráfico dinâmico"]
-            G_LOGIC -->|Mapa| MAP_JOIN["Join Espacial: Filtra geometrias no Parquet"]
-            MAP_JOIN --> MAP_BUILD["Leaflet: Mapa interativo"]
-        end
-        F2 --> Render
+        M_MAPA["mapa_module.R: Filtros + Mapa"]
+        M_GRAFICO["grafico_module.R: Filtros + Gráfico"]
     end
 
+    M_MAPA -->|Render| MAP_JOIN["Join Espacial + Silhueta"]
+    M_GRAFICO -->|Render| PLOT["Plotly"]
+    
+    MAP_JOIN --> MAP_BUILD["Leaflet: Cores via map_legend_data"]
+    
     VIZ --> PLOT
     VIZ --> MAP_BUILD
     SP --> MAP_JOIN
@@ -110,37 +111,29 @@ graph LR
 ```
 
 **Descrição da Lógica:**
-1.  **Carga Leve:** O app inicia apenas com os dados tabulares (`indicadores.parquet`).
-2.  **Filtros:** A UI utiliza filtros em cascata para navegar pelos eixos e indicadores.
-3.  **Renderização sob demanda:** Gráficos são gerados instantaneamente. Para mapas, o `spatial_processor.R` lê apenas as geometrias necessárias dos arquivos Parquet (otimização de I/O), unindo-as aos dados filtrados.
+1.  **Arquitetura Modular:** O aplicativo foi refatorado em módulos (`mapa_module.R` e `grafico_module.R`). Cada módulo gerencia seus próprios filtros internamente, localizados em um painel lateral (`bs4Card`) dentro da página, restaurando o layout de duas colunas (filtros à esquerda, visualização à direita).
+2.  **Legendas Consistentes:** O `global.R` carrega as definições de classes de `map_legend.parquet`. Isso permite que o `visualizations.R` use rótulos amigáveis em vez de valores brutos.
+3.  **Visualização Avançada:** O mapa inclui agora uma silhueta preta em negrito (`st_union`) para destacar o território selecionado e controle de camadas base.
 
 ## Como Executar
 
 ### 1. Preparação dos Dados
 
-Para baixar as malhas espaciais necessárias:
+Para baixar e validar as malhas espaciais:
 ```bash
 cd ibge_malhas
 Rscript download_ibge.R
 ```
 
-Para gerar os indicadores consolidados a partir dos dados brutos:
+Para gerar os indicadores e metadados de legenda:
 ```bash
 cd generate_indicadores
 Rscript gen_indicadores.R
 ```
-Isso gerará os arquivos `indicadores.xlsx` e `indicadores.parquet` na raiz do projeto.
 
 ### 2. Execução do Aplicativo
 
-Para rodar o aplicativo Shiny, execute na raiz do projeto:
+Execute na raiz do projeto:
 ```bash
 Rscript -e "shiny::runApp()"
-```
-
-## Testes
-
-Os testes podem ser executados com o comando:
-```bash
-Rscript -e "testthat::test_dir('tests/testthat')"
 ```

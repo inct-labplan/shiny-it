@@ -6,10 +6,16 @@
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
+    id = "sidebarmenu",
     menuItem(
-      text = "Indicadores", 
-      icon = icon("chart-line"),
-      tabName = "indicadores_explorador"
+      text = "Mapa", 
+      icon = icon("map"),
+      tabName = "mapa"
+    ),
+    menuItem(
+      text = "Gráfico", 
+      icon = icon("chart-bar"),
+      tabName = "grafico"
     )
   )
 )

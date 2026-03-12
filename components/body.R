@@ -4,15 +4,24 @@
 # Create the body for the ui using modular components
 ###################
 
-# Carregar módulos de interface unificados
-source('./components/indicadores_ui.R') 
+# Carregar novos módulos
+source('./components/mapa_module.R')
+source('./components/grafico_module.R')
 
 body <- bs4DashBody(
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "assets/custom.css")
   ),
   tabItems(
-    # Conteúdo unificado do explorador de indicadores
-    indicadores_tab_content()
+    # Tab de Mapa
+    tabItem(
+      tabName = "mapa",
+      mapa_ui("mapa_mod")
+    ),
+    # Tab de Gráfico
+    tabItem(
+      tabName = "grafico",
+      grafico_ui("grafico_mod")
+    )
   )
 )

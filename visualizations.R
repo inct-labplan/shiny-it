@@ -231,35 +231,44 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
 #' Constrói o Gráfico Plotly para um Indicador (Série Temporal)
 #' @param df_plot Dataframe de indicadores filtrado e ordenado por ano
 #' @param indicator_name Nome do indicador para legendas
-#' @param unit_name Nome da unidade territorial
+#' @param unit_names Nomes das unidades territoriais (vetor)
+#' @param chart_type Tipo de gráfico ("lines" ou "bar")
 #' @return Um objeto plotly
-build_indicator_graph <- function(df_plot, indicator_name, unit_name) {
+build_indicator_graph <- function(df_plot, indicator_name, unit_names, chart_type = "lines") {
   if (is.null(df_plot) || nrow(df_plot) == 0) return(NULL)
   
   logo_uri <- get_labplan_logo_uri()
+  
+  # Título e Subtítulo
+  display_unit <- if(length(unit_names) == 1) unit_names else paste(length(unit_names), "Unidades Selecionadas")
+  chart_title <- if("titulo_visualizacao" %in% names(df_plot)) df_plot$titulo_visualizacao[1] else indicator_name
   
   # Renderização baseada em ano (X) e valor (Y)
   p <- plot_ly(df_plot, 
           x = ~as.integer(ano), 
           y = ~valor_indicador, 
-          type = 'scatter', 
-          mode = 'lines+markers',
-          name = unit_name,
-          text = ~paste("Ano:", ano, "<br>Valor:", valor_indicador)) %>%
+          color = ~nome_unidade_territorial,
+          type = if(chart_type == "bar") "bar" else "scatter",
+          mode = if(chart_type == "bar") NULL else "lines+markers",
+          text = ~paste("Unidade:", nome_unidade_territorial, 
+                        "<br>Ano:", ano, 
+                        "<br>Valor:", valor_indicador),
+          hoverinfo = "text") %>%
     layout(
-      title = list(text = paste(df_plot$titulo_visualizacao[1], "<br><sup>", unit_name, "</sup>"),
+      title = list(text = paste0(chart_title, "<br><sup>", display_unit, "</sup>"),
                    font = list(size = 14)),
-      margin = list(t = 60, b = 100),
+      margin = list(t = 80, b = 100),
       xaxis = list(
         title = "Ano",
         tickmode = "linear",
         dtick = 1
       ),
       yaxis = list(title = "Valor"),
-      showlegend = FALSE,
+      showlegend = TRUE,
+      legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.2),
       annotations = list(
         list(
-          x = 1, y = -0.25,
+          x = 1, y = -0.3,
           text = paste("Fonte:", df_plot$fonte_dados[1]),
           showarrow = FALSE,
           xref = 'paper', yref = 'paper',
@@ -275,8 +284,8 @@ build_indicator_graph <- function(df_plot, indicator_name, unit_name) {
         list(
           source = logo_uri,
           xref = "paper", yref = "paper",
-          x = 0, y = -0.25,
-          sizex = 0.20, sizey = 0.20,
+          x = 0, y = -0.3,
+          sizex = 0.15, sizey = 0.15,
           xanchor = "left", yanchor = "middle",
           opacity = 0.8
         )

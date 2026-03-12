@@ -1,14 +1,24 @@
+# Diretórios de processamento e dados brutos
 generate_indicadores/**
 dados_tro/**
-tests
 tests/**
-.git
-.git/**
-.Rproj.user
+.git/
+.Rproj.user/
+
+# Arquivos de configuração e histórico
 .Rhistory
 .RData
-renv/library
-renv/python
-renv/staging
-dowload_ibge.R
-genparquet.sh
+.Rprofile
+deploy.R
+*.Rproj
+
+# Ambiente local (renv)
+renv/library/
+renv/python/
+renv/staging/
+
+# Scripts auxiliares e arquivos temporários
+ibge_malhas/download_ibge.R
+ibge_malhas/genparquet.sh
+indicadores.xlsx
+reproduce_legend_issue.R

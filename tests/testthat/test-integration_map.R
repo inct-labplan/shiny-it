@@ -18,7 +18,7 @@ options(shinyit.test_mode = TRUE)
 # Source the function and server logic
 source("../../spatial_processor.R", local = TRUE)
 source("../../visualizations.R", local = TRUE)
-source("../../components/indicadores_server.R", local = TRUE)
+source("../../components/mapa_module.R", local = TRUE)
 
 # The server logic uses 'dados_indicadores' from the global/calling environment
 dados_indicadores <- data.frame(
@@ -42,11 +42,10 @@ test_that("Integration: Map generation from server logic", {
     skip("Parquet file for integration test not found")
   }
 
-  testServer(indicadores_server_logic, {
+  testServer(mapa_server, args = list(dados_indicadores = dados_indicadores), {
     # Step 1-6: Setup inputs
     session$setInputs(eixo_sel = "Econômico")
     session$setInputs(indicador_sel = "PIB")
-    session$setInputs(viz_type = "Mapa")
     session$setInputs(unidade_sel = "Estado")
     session$setInputs(nome_unidade_sel = "São Paulo")
     session$setInputs(ano_sel = "2024")
