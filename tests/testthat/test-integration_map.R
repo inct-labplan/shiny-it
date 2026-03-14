@@ -20,7 +20,7 @@ source("../../spatial_processor.R", local = TRUE)
 source("../../visualizations.R", local = TRUE)
 source("../../components/mapa_module.R", local = TRUE)
 
-# The server logic uses 'dados_indicadores' from the global/calling environment
+# Mock data for testing
 dados_indicadores <- data.frame(
   eixo = "Econômico",
   tags = "test",
@@ -31,7 +31,20 @@ dados_indicadores <- data.frame(
   tipo_visualizacao = "Mapa",
   nome_indicador = "PIB",
   valor_indicador = 1500.5,
-  classes_indicador = "Alta",
+  classe_indicador = "Alta",
+  stringsAsFactors = FALSE
+)
+
+diretorio_ibge <- data.frame(
+  id_municipio = "3550308",
+  nome_municipio = "São Paulo",
+  sigla_uf = "SP",
+  id_uf = "35",
+  nome_uf = "São Paulo",
+  id_regiao_metropolitana = "001",
+  nome_regiao_metropolitana = "RMSan",
+  id_brasil = "BR",
+  nome_brasil = "Brasil",
   stringsAsFactors = FALSE
 )
 
@@ -46,8 +59,9 @@ test_that("Integration: Map generation from server logic", {
     # Step 1-6: Setup inputs
     session$setInputs(eixo_sel = "Econômico")
     session$setInputs(indicador_sel = "PIB")
-    session$setInputs(unidade_sel = "Estado")
-    session$setInputs(nome_unidade_sel = "São Paulo")
+    session$setInputs(granularidade_sel = "Estado")
+    session$setInputs(recorte_sel = "Estado")
+    session$setInputs(unidade_recorte_sel = "São Paulo")
     session$setInputs(ano_sel = "2024")
     
     # Step 7: Click Generate

@@ -40,16 +40,24 @@ mapa_ui <- function(id) {
           ),
           
           shinyjs::hidden(
-            div(id = ns("step_unidade"),
-                selectInput(ns("unidade_sel"), "3. Abrangência", 
+            div(id = ns("step_granularidade"),
+                selectInput(ns("granularidade_sel"), "3. Granularidade", 
                             choices = NULL, 
                             multiple = FALSE)
             )
           ),
           
           shinyjs::hidden(
-            div(id = ns("step_nome_unidade"),
-                selectInput(ns("nome_unidade_sel"), "4. Unidade", 
+            div(id = ns("step_recorte"),
+                selectInput(ns("recorte_sel"), "4. Recorte Territorial", 
+                            choices = NULL, 
+                            multiple = FALSE)
+            )
+          ),
+          
+          shinyjs::hidden(
+            div(id = ns("step_unidade_recorte"),
+                selectInput(ns("unidade_recorte_sel"), "5. Selecione a Unidade", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -57,7 +65,7 @@ mapa_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_ano"),
-                selectInput(ns("ano_sel"), "5. Ano", choices = NULL)
+                selectInput(ns("ano_sel"), "6. Ano", choices = NULL)
             )
           ),
           
@@ -105,8 +113,6 @@ mapa_server <- function(id, dados_indicadores) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # Lógica permanece a mesma, mudando apenas referências visuais se necessário
-    
     # 1. Inicializar Eixo
     observe({
       req(dados_indicadores)
@@ -119,93 +125,190 @@ mapa_server <- function(id, dados_indicadores) {
     observeEvent(input$eixo_sel, {
       if(input$eixo_sel == "" || is.null(input$eixo_sel)) {
         shinyjs::hide("step_indicador")
-        shinyjs::hide("step_unidade")
-        shinyjs::hide("step_nome_unidade")
+        shinyjs::hide("step_granularidade")
+        shinyjs::hide("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
         shinyjs::hide("gerar_viz")
       } else {
         df_eixo <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel, tipo_visualizacao == "Mapa")
         updateSelectInput(session, "indicador_sel", 
-                          choices = c("Selecione..." = "", unique(df_eixo$nome_indicador)))
+                          choices = c("Selecione..." = "", unique(df_eixo$nome_indicador)),
+                          selected = "")
         shinyjs::show("step_indicador")
-        shinyjs::hide("step_unidade")
-        shinyjs::hide("step_nome_unidade")
+        shinyjs::hide("step_granularidade")
+        shinyjs::hide("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
-        shinyjs::hide("gerar_viz")
       }
     })
     
-    # 2. Filtrar Indicador
+    # 2. Filtrar Indicador e mostrar Granularidade
     observeEvent(input$indicador_sel, {
       req(input$eixo_sel)
       if(input$indicador_sel == "" || is.null(input$indicador_sel)) {
-        shinyjs::hide("step_unidade")
-        shinyjs::hide("step_nome_unidade")
+        shinyjs::hide("step_granularidade")
+        shinyjs::hide("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
         shinyjs::hide("gerar_viz")
       } else {
-        df_unidade <- dados_indicadores %>% 
+        df_ind <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel, 
                  nome_indicador == input$indicador_sel,
                  tipo_visualizacao == "Mapa")
         
-        unidade_choices <- unique(df_unidade$unidade_territorial)
-        updateSelectInput(session, "unidade_sel", 
-                          choices = c("Selecione..." = "", unidade_choices))
-        shinyjs::show("step_unidade")
-        shinyjs::hide("step_nome_unidade")
+        gran_choices <- unique(df_ind$unidade_territorial)
+        updateSelectInput(session, "granularidade_sel", 
+                          choices = c("Selecione..." = "", gran_choices),
+                          selected = "")
+        shinyjs::show("step_granularidade")
+        shinyjs::hide("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
-        shinyjs::hide("gerar_viz")
       }
     })
     
-    # 3. Filtrar Abrangência
-    observeEvent(input$unidade_sel, {
-      req(input$eixo_sel, input$indicador_sel)
-      if(input$unidade_sel == "" || is.null(input$unidade_sel)) {
-        shinyjs::hide("step_nome_unidade")
+    # 3. Filtrar Granularidade e mostrar Recorte Territorial
+    observeEvent(input$granularidade_sel, {
+      req(input$indicador_sel, input$granularidade_sel)
+      if(input$granularidade_sel == "" || is.null(input$granularidade_sel)) {
+        shinyjs::hide("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
         shinyjs::hide("gerar_viz")
       } else {
-        df_nome <- dados_indicadores %>% 
+        # Identificar IDs presentes nos indicadores para este nível
+        df_filtro <- dados_indicadores %>%
           filter(eixo == input$eixo_sel,
                  nome_indicador == input$indicador_sel,
-                 tipo_visualizacao == "Mapa",
-                 unidade_territorial == input$unidade_sel)
+                 unidade_territorial == input$granularidade_sel)
         
-        new_label <- paste("4. Selecione o(a)", input$unidade_sel)
-        nome_unidade_choices <- unique(df_nome$nome_unidade_territorial)
+        ids_presentes <- unique(as.character(df_filtro$identificador_unidade_territorial))
         
-        updateSelectizeInput(session, "nome_unidade_sel", 
-                          label = new_label,
-                          choices = c("Selecione..." = "", nome_unidade_choices),
-                          server = TRUE)
-        shinyjs::show("step_nome_unidade")
+        # Mapeamento Granularidade -> Coluna do Diretorio
+        col_id <- switch(input$granularidade_sel,
+          "Município" = "id_municipio",
+          "Estado" = "id_uf",
+          "Região Metropolitana" = "id_regiao_metropolitana",
+          "Brasil" = "id_brasil"
+        )
+        
+        # Filtrar diretório pelos IDs que temos nos dados
+        df_dir_subset <- diretorio_ibge %>% 
+          filter(!!sym(col_id) %in% ids_presentes)
+        
+        # Determinar quais recortes são possíveis
+        recorte_choices <- c()
+        if (any(!is.na(df_dir_subset$id_brasil))) recorte_choices <- c(recorte_choices, "Brasil")
+        if (any(!is.na(df_dir_subset$id_uf))) recorte_choices <- c(recorte_choices, "Estado")
+        if (any(!is.na(df_dir_subset$id_regiao_metropolitana))) recorte_choices <- c(recorte_choices, "Região Metropolitana")
+        if (any(!is.na(df_dir_subset$id_municipio))) recorte_choices <- c(recorte_choices, "Município")
+        
+        # Filtrar recortes permitidos baseado na hierarquia
+        niveis <- c("Brasil", "Estado", "Região Metropolitana", "Município")
+        idx_gran <- which(niveis == input$granularidade_sel)
+        recorte_choices <- intersect(recorte_choices, niveis[1:idx_gran])
+        
+        updateSelectInput(session, "recorte_sel", 
+                          choices = c("Selecione..." = "", recorte_choices),
+                          selected = "")
+        shinyjs::show("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
-        shinyjs::hide("gerar_viz")
       }
     })
     
-    # 4. Filtrar Nome da Unidade e Ano
-    observeEvent(input$nome_unidade_sel, {
-      req(input$eixo_sel, input$indicador_sel, input$unidade_sel)
-      if(input$nome_unidade_sel == "" || is.null(input$nome_unidade_sel)) {
+    # 4. Filtrar Recorte Territorial e mostrar Unidade do Recorte
+    observeEvent(input$recorte_sel, {
+      req(input$indicador_sel, input$granularidade_sel, input$recorte_sel)
+      if(input$recorte_sel == "" || is.null(input$recorte_sel)) {
+        shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
         shinyjs::hide("gerar_viz")
       } else {
+        # Identificar IDs presentes nos indicadores para este nível de granularidade
+        df_filtro <- dados_indicadores %>%
+          filter(eixo == input$eixo_sel,
+                 nome_indicador == input$indicador_sel,
+                 unidade_territorial == input$granularidade_sel)
+        
+        ids_presentes <- unique(as.character(df_filtro$identificador_unidade_territorial))
+        
+        col_gran_id <- switch(input$granularidade_sel,
+          "Município" = "id_municipio",
+          "Estado" = "id_uf",
+          "Região Metropolitana" = "id_regiao_metropolitana",
+          "Brasil" = "id_brasil"
+        )
+        
+        # Filtrar diretorório pelos IDs disponíveis
+        df_dir_subset <- diretorio_ibge %>% 
+          filter(!!sym(col_gran_id) %in% ids_presentes)
+        
+        # Identificar coluna de nomes do Recorte selecionado
+        col_rec_nome <- switch(input$recorte_sel,
+          "Brasil" = "nome_brasil",
+          "Estado" = "nome_uf",
+          "Região Metropolitana" = "nome_regiao_metropolitana",
+          "Município" = "nome_municipio"
+        )
+        
+        unidades_choices <- unique(df_dir_subset[[col_rec_nome]])
+        unidades_choices <- unidades_choices[!is.na(unidades_choices)]
+        
+        new_label <- paste("5. Selecione o(a)", input$recorte_sel)
+        updateSelectInput(session, "unidade_recorte_sel", 
+                          label = new_label,
+                          choices = c("Selecione..." = "", sort(unidades_choices)),
+                          selected = "")
+        
+        shinyjs::show("step_unidade_recorte")
+        shinyjs::hide("step_ano")
+      }
+    })
+    
+    # 5. Filtrar Unidade do Recorte e mostrar Ano
+    observeEvent(input$unidade_recorte_sel, {
+      req(input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel)
+      if(input$unidade_recorte_sel == "" || is.null(input$unidade_recorte_sel)) {
+        shinyjs::hide("step_ano")
+        shinyjs::hide("gerar_viz")
+      } else {
+        # Para saber quais anos mostrar, precisamos saber quais registros do indicador estão nessa unidade
+        # 1. Identificar quais IDs de granularidade pertencem à unidade de recorte selecionada
+        col_rec_nome <- switch(input$recorte_sel,
+          "Brasil" = "nome_brasil",
+          "Estado" = "nome_uf",
+          "Região Metropolitana" = "nome_regiao_metropolitana",
+          "Município" = "nome_municipio"
+        )
+        
+        col_gran_id <- switch(input$granularidade_sel,
+          "Município" = "id_municipio",
+          "Estado" = "id_uf",
+          "Região Metropolitana" = "id_regiao_metropolitana",
+          "Brasil" = "id_brasil"
+        )
+        
+        ids_na_unidade <- diretorio_ibge %>%
+          filter(!!sym(col_rec_nome) == input$unidade_recorte_sel) %>%
+          pull(!!sym(col_gran_id)) %>%
+          unique() %>%
+          as.character()
+          
         df_ano <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel,
                  nome_indicador == input$indicador_sel,
-                 tipo_visualizacao == "Mapa",
-                 unidade_territorial == input$unidade_sel,
-                 nome_unidade_territorial == input$nome_unidade_sel)
+                 unidade_territorial == input$granularidade_sel,
+                 identificador_unidade_territorial %in% ids_na_unidade)
         
         ano_choices <- sort(unique(df_ano$ano), decreasing = TRUE)
         updateSelectInput(session, "ano_sel", 
-                          choices = c("Selecione..." = "", ano_choices))
+                          choices = c("Selecione..." = "", ano_choices),
+                          selected = "")
         shinyjs::show("step_ano")
-        shinyjs::hide("gerar_viz")
       }
     })
     
@@ -219,7 +322,7 @@ mapa_server <- function(id, dados_indicadores) {
     })
     
     # Resetar visualização ao mudar qualquer filtro
-    observeEvent(list(input$eixo_sel, input$indicador_sel, input$unidade_sel, input$nome_unidade_sel, input$ano_sel), {
+    observeEvent(list(input$eixo_sel, input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel, input$ano_sel), {
       shinyjs::hide("viz_output_container")
       shinyjs::show("viz_placeholder")
     })
@@ -241,23 +344,47 @@ mapa_server <- function(id, dados_indicadores) {
     output$mapa_indicador <- renderLeaflet({
       input$gerar_viz
       isolate({
-        req(input$indicador_sel, input$unidade_sel, input$nome_unidade_sel, input$ano_sel)
+        req(input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel, input$ano_sel)
+        
+        # 1. Identificar quais IDs de granularidade pertencem à unidade de recorte selecionada
+        col_rec_nome <- switch(input$recorte_sel,
+          "Brasil" = "nome_brasil",
+          "Estado" = "nome_uf",
+          "Região Metropolitana" = "nome_regiao_metropolitana",
+          "Município" = "nome_municipio"
+        )
+        
+        col_gran_id <- switch(input$granularidade_sel,
+          "Município" = "id_municipio",
+          "Estado" = "id_uf",
+          "Região Metropolitana" = "id_regiao_metropolitana",
+          "Brasil" = "id_brasil"
+        )
+        
+        ids_na_unidade <- diretorio_ibge %>%
+          filter(!!sym(col_rec_nome) == input$unidade_recorte_sel) %>%
+          pull(!!sym(col_gran_id)) %>%
+          unique() %>%
+          as.character()
+          
         df_filtered <- dados_indicadores %>%
           filter(eixo == input$eixo_sel,
                  nome_indicador == input$indicador_sel,
                  tipo_visualizacao == "Mapa",
-                 unidade_territorial == input$unidade_sel,
-                 nome_unidade_territorial == input$nome_unidade_sel,
+                 unidade_territorial == input$granularidade_sel,
+                 identificador_unidade_territorial %in% ids_na_unidade,
                  ano == as.integer(input$ano_sel))
         
         if(nrow(df_filtered) == 0) return(NULL)
         
         sf_map <- withProgress(message = 'Buscando geometrias...', value = 0.5, {
-          join_indicators_with_spatial(df_filtered, input$unidade_sel)
+          join_indicators_with_spatial(df_filtered, input$granularidade_sel)
         })
         
         if(is.null(sf_map) || nrow(sf_map) == 0) return(NULL)
-        build_indicator_map(sf_map, input$indicador_sel, input$nome_unidade_sel)
+        
+        # O título do mapa pode usar o nome da unidade selecionada
+        build_indicator_map(sf_map, input$indicador_sel, input$unidade_recorte_sel)
       })
     })
   })

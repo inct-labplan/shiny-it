@@ -115,6 +115,12 @@ join_indicators_with_spatial <- function(indicators_df, level, malhas_dir = NULL
   spatial_df$geometry <- sf::st_as_sfc(spatial_df$geometry_wkb, crs = 4674)
   spatial_sf <- sf::st_as_sf(spatial_df)
   
+  # Garante validade das geometrias e compatibilidade com Leaflet
+  spatial_sf <- spatial_sf %>%
+    sf::st_make_valid() %>%
+    sf::st_collection_extract("POLYGON") %>%
+    sf::st_transform(4326)
+  
   # Remove a coluna WKB original para economizar memória
   spatial_sf$geometry_wkb <- NULL
   

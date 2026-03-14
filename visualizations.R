@@ -155,9 +155,6 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
     )
   }
 
-  # Adiciona silhueta externa preta da seleção (Union das geometrias)
-  sf_union <- sf::st_union(sf_map)
-
   m <- m %>%
     addControl(
       html = paste0("<div class='sync-width' style='background: rgba(255,255,255,0.8); padding: 5px; font-size: 10px; color: #666; border: 1px solid #ccc; border-radius: 5px;'>", data_source, "</div>"),
@@ -167,10 +164,10 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
     # Camada de Polígonos de Dados
     addPolygons(
       fillColor = ~pal(valor_indicador),
-      weight = 1,
+      weight = 1.5,
       opacity = 1,
-      color = "white",
-      dashArray = "3",
+      color = "black",
+      dashArray = "",
       fillOpacity = 0.7,
       highlightOptions = highlightOptions(
         weight = 3,
@@ -186,15 +183,6 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
         direction = "auto"
       ),
       group = "Indicadores"
-    ) %>%
-    # Camada de Silhueta Externa (Black Outline)
-    addPolygons(
-      data = sf_union,
-      fill = FALSE,
-      color = "black",
-      weight = 2,
-      opacity = 1,
-      group = "Contorno Externo"
     ) %>%
     # Controle de Camadas
     addLayersControl(
