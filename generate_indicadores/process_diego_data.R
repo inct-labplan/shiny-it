@@ -7,8 +7,7 @@ library(writexl)
 library(stringr)
 
 # Configurações de Caminhos (Relativos à raiz do projeto)
-root_dir <- ".."
-input_file <- file.path(root_dir, "dados_tro/data_ti.gpkg")
+input_file <- file.path("dados_tro/data_ti.gpkg")
 
 if (!file.exists(input_file)) {
   stop(paste("Erro: Arquivo de entrada não encontrado:", input_file))
@@ -31,7 +30,7 @@ df_processed <- df_raw %>%
     categoria_intensidade_tecnologica = str_to_title(gsub("_", " ", categoria_intensidade_tecnologica)),
     
     eixo = "Eixo 1",
-    tags = "empresas;setor-produtivo",
+    projeto = "Intesidade Tecnológica",
     ano = 2025,
     unidade_territorial = "Município",
     identificador_unidade_territorial = as.character(code_muni),
@@ -45,12 +44,14 @@ df_processed <- df_raw %>%
     
     # Metadados adicionais
     fonte_dados = "Cadastro de CNPJ da Receita Federal (2025)",
-    unidade_medida = "empresas"
+    unidade_medida = "empresas",
+    link_ckan_dados = "link_ckan_dados",
+    link_ckan_dados = "https://ipp.ufrn.br/labplan"
   ) %>%
   # Seleção e ordenação final das colunas para o Excel
   select(
     eixo,
-    tags,
+    projeto,
     ano,
     unidade_territorial,
     identificador_unidade_territorial,
@@ -62,6 +63,7 @@ df_processed <- df_raw %>%
     classe_indicador,
     titulo_visualizacao,
     fonte_dados,
+    link_ckan_dados
   )
 
 # Resumo da operação

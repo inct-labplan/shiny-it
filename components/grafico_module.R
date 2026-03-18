@@ -32,8 +32,16 @@ grafico_ui <- function(id) {
                       multiple = FALSE),
           
           shinyjs::hidden(
+            div(id = ns("step_projeto"),
+                selectInput(ns("projeto_sel"), "2. Projeto", 
+                            choices = NULL, 
+                            multiple = FALSE)
+            )
+          ),
+          
+          shinyjs::hidden(
             div(id = ns("step_indicador"),
-                selectInput(ns("indicador_sel"), "2. Indicador", 
+                selectInput(ns("indicador_sel"), "3. Indicador", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -41,7 +49,7 @@ grafico_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_unidade"),
-                selectInput(ns("unidade_sel"), "3. Abrangência", 
+                selectInput(ns("unidade_sel"), "4. Abrangência", 
                             choices = NULL, 
                             multiple = TRUE)
             )
@@ -49,7 +57,7 @@ grafico_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_nome_unidade"),
-                selectInput(ns("nome_unidade_sel"), "4. Unidade", 
+                selectInput(ns("nome_unidade_sel"), "5. Unidade", 
                             choices = NULL, 
                             multiple = TRUE)
             )
@@ -57,7 +65,7 @@ grafico_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_tipo_grafico"),
-                radioButtons(ns("tipo_grafico_sel"), "5. Tipo de Gráfico",
+                radioButtons(ns("tipo_grafico_sel"), "6. Tipo de Gráfico",
                              choices = c("Linhas" = "lines", "Barras" = "bar"),
                              selected = "lines",
                              inline = TRUE)
@@ -109,9 +117,10 @@ grafico_server <- function(id, dados_indicadores) {
                         choices = c("Selecione..." = "", unique(df_grafico$eixo)))
     })
     
-    # Resetar tudo quando mudar o eixo
+    # Resetar tudo quando mudar o eixo e carregar Projetos
     observeEvent(input$eixo_sel, {
       if(input$eixo_sel == "" || is.null(input$eixo_sel)) {
+        shinyjs::hide("step_projeto")
         shinyjs::hide("step_indicador")
         shinyjs::hide("step_unidade")
         shinyjs::hide("step_nome_unidade")
@@ -120,8 +129,37 @@ grafico_server <- function(id, dados_indicadores) {
       } else {
         df_eixo <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel, tipo_visualizacao == "Gráfico")
+        
+        updateSelectInput(session, "projeto_sel", 
+                          choices = c("Selecione..." = "", unique(df_eixo$projeto)))
+        
+        shinyjs::show("step_projeto")
+        shinyjs::hide("step_indicador")
+        shinyjs::hide("step_unidade")
+        shinyjs::hide("step_nome_unidade")
+        shinyjs::hide("step_tipo_grafico")
+        shinyjs::hide("gerar_viz")
+      }
+    })
+    
+    # 2. Filtrar Projeto e carregar Indicadores
+    observeEvent(input$projeto_sel, {
+      req(input$eixo_sel)
+      if(input$projeto_sel == "" || is.null(input$projeto_sel)) {
+        shinyjs::hide("step_indicador")
+        shinyjs::hide("step_unidade")
+        shinyjs::hide("step_nome_unidade")
+        shinyjs::hide("step_tipo_grafico")
+        shinyjs::hide("gerar_viz")
+      } else {
+        df_projeto <- dados_indicadores %>% 
+          filter(eixo == input$eixo_sel, 
+                 projeto == input$projeto_sel,
+                 tipo_visualizacao == "Gráfico")
+        
         updateSelectInput(session, "indicador_sel", 
-                          choices = c("Selecione..." = "", unique(df_eixo$nome_indicador)))
+                          choices = c("Selecione..." = "", unique(df_projeto$nome_indicador)))
+        
         shinyjs::show("step_indicador")
         shinyjs::hide("step_unidade")
         shinyjs::hide("step_nome_unidade")
@@ -130,9 +168,9 @@ grafico_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 2. Filtrar Indicador
+    # 3. Filtrar Indicador
     observeEvent(input$indicador_sel, {
-      req(input$eixo_sel)
+      req(input$eixo_sel, input$projeto_sel)
       if(input$indicador_sel == "" || is.null(input$indicador_sel)) {
         shinyjs::hide("step_unidade")
         shinyjs::hide("step_nome_unidade")
@@ -141,6 +179,7 @@ grafico_server <- function(id, dados_indicadores) {
       } else {
         df_unidade <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel, 
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  tipo_visualizacao == "Gráfico")
         
@@ -154,9 +193,9 @@ grafico_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 3. Filtrar Abrangência
+    # 4. Filtrar Abrangência
     observeEvent(input$unidade_sel, {
-      req(input$eixo_sel, input$indicador_sel)
+      req(input$eixo_sel, input$projeto_sel, input$indicador_sel)
       if(is.null(input$unidade_sel) || length(input$unidade_sel) == 0 || (length(input$unidade_sel) == 1 && input$unidade_sel == "")) {
         shinyjs::hide("step_nome_unidade")
         shinyjs::hide("step_tipo_grafico")
@@ -164,13 +203,14 @@ grafico_server <- function(id, dados_indicadores) {
       } else {
         df_nome <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel,
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  tipo_visualizacao == "Gráfico",
                  unidade_territorial %in% input$unidade_sel)
         
         # Refatorar geração de label para múltiplas unidades
         label_unidades <- paste(input$unidade_sel, collapse = " / ")
-        new_label <- paste("4. Selecione o(a)", label_unidades)
+        new_label <- paste("5. Selecione o(a)", label_unidades)
         nome_unidade_choices <- unique(df_nome$nome_unidade_territorial)
         
         updateSelectizeInput(session, "nome_unidade_sel", 
@@ -183,7 +223,7 @@ grafico_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 4. Mostrar botão se Nome da Unidade selecionado
+    # 5. Mostrar botão se Nome da Unidade selecionado
     observeEvent(input$nome_unidade_sel, {
       if(!is.null(input$nome_unidade_sel) && length(input$nome_unidade_sel) > 0 && any(input$nome_unidade_sel != "")) {
         shinyjs::show("gerar_viz")
@@ -193,7 +233,7 @@ grafico_server <- function(id, dados_indicadores) {
     })
     
     # Resetar visualização ao mudar qualquer filtro
-    observeEvent(list(input$eixo_sel, input$indicador_sel, input$unidade_sel, input$nome_unidade_sel, input$tipo_grafico_sel), {
+    observeEvent(list(input$eixo_sel, input$projeto_sel, input$indicador_sel, input$unidade_sel, input$nome_unidade_sel, input$tipo_grafico_sel), {
       shinyjs::hide("viz_output_container")
       shinyjs::show("viz_placeholder")
     })
@@ -208,9 +248,10 @@ grafico_server <- function(id, dados_indicadores) {
     output$plot_indicador <- renderPlotly({
       input$gerar_viz
       isolate({
-        req(input$indicador_sel, input$unidade_sel, input$nome_unidade_sel)
+        req(input$projeto_sel, input$indicador_sel, input$unidade_sel, input$nome_unidade_sel)
         df_plot <- dados_indicadores %>%
           filter(eixo == input$eixo_sel,
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  tipo_visualizacao == "Gráfico",
                  unidade_territorial %in% input$unidade_sel,

@@ -32,8 +32,16 @@ mapa_ui <- function(id) {
                       multiple = FALSE),
           
           shinyjs::hidden(
+            div(id = ns("step_projeto"),
+                selectInput(ns("projeto_sel"), "2. Projeto", 
+                            choices = NULL, 
+                            multiple = FALSE)
+            )
+          ),
+          
+          shinyjs::hidden(
             div(id = ns("step_indicador"),
-                selectInput(ns("indicador_sel"), "2. Indicador", 
+                selectInput(ns("indicador_sel"), "3. Indicador", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -41,7 +49,7 @@ mapa_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_granularidade"),
-                selectInput(ns("granularidade_sel"), "3. Granularidade", 
+                selectInput(ns("granularidade_sel"), "4. Granularidade", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -49,7 +57,7 @@ mapa_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_recorte"),
-                selectInput(ns("recorte_sel"), "4. Recorte Territorial", 
+                selectInput(ns("recorte_sel"), "5. Recorte Territorial", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -57,7 +65,7 @@ mapa_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_unidade_recorte"),
-                selectInput(ns("unidade_recorte_sel"), "5. Selecione a Unidade", 
+                selectInput(ns("unidade_recorte_sel"), "6. Selecione a Unidade", 
                             choices = NULL, 
                             multiple = FALSE)
             )
@@ -65,7 +73,7 @@ mapa_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_ano"),
-                selectInput(ns("ano_sel"), "6. Ano", choices = NULL)
+                selectInput(ns("ano_sel"), "7. Ano", choices = NULL)
             )
           ),
           
@@ -121,9 +129,10 @@ mapa_server <- function(id, dados_indicadores) {
                         choices = c("Selecione..." = "", unique(df_mapa$eixo)))
     })
     
-    # Resetar tudo quando mudar o eixo
+    # Resetar tudo quando mudar o eixo e carregar Projetos
     observeEvent(input$eixo_sel, {
       if(input$eixo_sel == "" || is.null(input$eixo_sel)) {
+        shinyjs::hide("step_projeto")
         shinyjs::hide("step_indicador")
         shinyjs::hide("step_granularidade")
         shinyjs::hide("step_recorte")
@@ -133,9 +142,40 @@ mapa_server <- function(id, dados_indicadores) {
       } else {
         df_eixo <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel, tipo_visualizacao == "Mapa")
-        updateSelectInput(session, "indicador_sel", 
-                          choices = c("Selecione..." = "", unique(df_eixo$nome_indicador)),
+        
+        updateSelectInput(session, "projeto_sel", 
+                          choices = c("Selecione..." = "", unique(df_eixo$projeto)),
                           selected = "")
+        
+        shinyjs::show("step_projeto")
+        shinyjs::hide("step_indicador")
+        shinyjs::hide("step_granularidade")
+        shinyjs::hide("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
+        shinyjs::hide("step_ano")
+      }
+    })
+    
+    # 2. Filtrar Projeto e carregar Indicadores
+    observeEvent(input$projeto_sel, {
+      req(input$eixo_sel)
+      if(input$projeto_sel == "" || is.null(input$projeto_sel)) {
+        shinyjs::hide("step_indicador")
+        shinyjs::hide("step_granularidade")
+        shinyjs::hide("step_recorte")
+        shinyjs::hide("step_unidade_recorte")
+        shinyjs::hide("step_ano")
+        shinyjs::hide("gerar_viz")
+      } else {
+        df_projeto <- dados_indicadores %>% 
+          filter(eixo == input$eixo_sel, 
+                 projeto == input$projeto_sel,
+                 tipo_visualizacao == "Mapa")
+        
+        updateSelectInput(session, "indicador_sel", 
+                          choices = c("Selecione..." = "", unique(df_projeto$nome_indicador)),
+                          selected = "")
+        
         shinyjs::show("step_indicador")
         shinyjs::hide("step_granularidade")
         shinyjs::hide("step_recorte")
@@ -144,9 +184,9 @@ mapa_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 2. Filtrar Indicador e mostrar Granularidade
+    # 3. Filtrar Indicador e mostrar Granularidade
     observeEvent(input$indicador_sel, {
-      req(input$eixo_sel)
+      req(input$eixo_sel, input$projeto_sel)
       if(input$indicador_sel == "" || is.null(input$indicador_sel)) {
         shinyjs::hide("step_granularidade")
         shinyjs::hide("step_recorte")
@@ -156,6 +196,7 @@ mapa_server <- function(id, dados_indicadores) {
       } else {
         df_ind <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel, 
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  tipo_visualizacao == "Mapa")
         
@@ -170,9 +211,9 @@ mapa_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 3. Filtrar Granularidade e mostrar Recorte Territorial
+    # 4. Filtrar Granularidade e mostrar Recorte Territorial
     observeEvent(input$granularidade_sel, {
-      req(input$indicador_sel, input$granularidade_sel)
+      req(input$projeto_sel, input$indicador_sel, input$granularidade_sel)
       if(input$granularidade_sel == "" || is.null(input$granularidade_sel)) {
         shinyjs::hide("step_recorte")
         shinyjs::hide("step_unidade_recorte")
@@ -182,6 +223,7 @@ mapa_server <- function(id, dados_indicadores) {
         # Identificar IDs presentes nos indicadores para este nível
         df_filtro <- dados_indicadores %>%
           filter(eixo == input$eixo_sel,
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  unidade_territorial == input$granularidade_sel)
         
@@ -220,9 +262,9 @@ mapa_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 4. Filtrar Recorte Territorial e mostrar Unidade do Recorte
+    # 5. Filtrar Recorte Territorial e mostrar Unidade do Recorte
     observeEvent(input$recorte_sel, {
-      req(input$indicador_sel, input$granularidade_sel, input$recorte_sel)
+      req(input$projeto_sel, input$indicador_sel, input$granularidade_sel, input$recorte_sel)
       if(input$recorte_sel == "" || is.null(input$recorte_sel)) {
         shinyjs::hide("step_unidade_recorte")
         shinyjs::hide("step_ano")
@@ -231,6 +273,7 @@ mapa_server <- function(id, dados_indicadores) {
         # Identificar IDs presentes nos indicadores para este nível de granularidade
         df_filtro <- dados_indicadores %>%
           filter(eixo == input$eixo_sel,
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  unidade_territorial == input$granularidade_sel)
         
@@ -258,7 +301,7 @@ mapa_server <- function(id, dados_indicadores) {
         unidades_choices <- unique(df_dir_subset[[col_rec_nome]])
         unidades_choices <- unidades_choices[!is.na(unidades_choices)]
         
-        new_label <- paste("5. Selecione o(a)", input$recorte_sel)
+        new_label <- paste("6. Selecione o(a)", input$recorte_sel)
         updateSelectInput(session, "unidade_recorte_sel", 
                           label = new_label,
                           choices = c("Selecione..." = "", sort(unidades_choices)),
@@ -269,9 +312,9 @@ mapa_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 5. Filtrar Unidade do Recorte e mostrar Ano
+    # 6. Filtrar Unidade do Recorte e mostrar Ano
     observeEvent(input$unidade_recorte_sel, {
-      req(input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel)
+      req(input$projeto_sel, input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel)
       if(input$unidade_recorte_sel == "" || is.null(input$unidade_recorte_sel)) {
         shinyjs::hide("step_ano")
         shinyjs::hide("gerar_viz")
@@ -300,6 +343,7 @@ mapa_server <- function(id, dados_indicadores) {
           
         df_ano <- dados_indicadores %>% 
           filter(eixo == input$eixo_sel,
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  unidade_territorial == input$granularidade_sel,
                  identificador_unidade_territorial %in% ids_na_unidade)
@@ -312,7 +356,7 @@ mapa_server <- function(id, dados_indicadores) {
       }
     })
     
-    # 5. Mostrar botão se Ano selecionado
+    # 7. Mostrar botão se Ano selecionado
     observeEvent(input$ano_sel, {
       if(!is.null(input$ano_sel) && input$ano_sel != "") {
         shinyjs::show("gerar_viz")
@@ -322,7 +366,7 @@ mapa_server <- function(id, dados_indicadores) {
     })
     
     # Resetar visualização ao mudar qualquer filtro
-    observeEvent(list(input$eixo_sel, input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel, input$ano_sel), {
+    observeEvent(list(input$eixo_sel, input$projeto_sel, input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel, input$ano_sel), {
       shinyjs::hide("viz_output_container")
       shinyjs::show("viz_placeholder")
     })
@@ -344,7 +388,7 @@ mapa_server <- function(id, dados_indicadores) {
     output$mapa_indicador <- renderLeaflet({
       input$gerar_viz
       isolate({
-        req(input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel, input$ano_sel)
+        req(input$projeto_sel, input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel, input$ano_sel)
         
         # 1. Identificar quais IDs de granularidade pertencem à unidade de recorte selecionada
         col_rec_nome <- switch(input$recorte_sel,
@@ -369,6 +413,7 @@ mapa_server <- function(id, dados_indicadores) {
           
         df_filtered <- dados_indicadores %>%
           filter(eixo == input$eixo_sel,
+                 projeto == input$projeto_sel,
                  nome_indicador == input$indicador_sel,
                  tipo_visualizacao == "Mapa",
                  unidade_territorial == input$granularidade_sel,

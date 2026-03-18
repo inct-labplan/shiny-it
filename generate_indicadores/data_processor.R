@@ -17,10 +17,10 @@ load_and_validate_indicators <- function(df_or_path) {
   # 2. Definição do Contrato de Dados (Colunas Obrigatórias)
   # Nota: nome_unidade_territorial é adicionado por enrich_with_territory_names
   cols_obrigatorias <- c(
-    "eixo", "tags", "ano", "unidade_territorial",
+    "eixo", "projeto", "ano", "unidade_territorial",
     "identificador_unidade_territorial", "tipo_visualizacao", 
     "nome_indicador","descricao_indicador", "valor_indicador", "titulo_visualizacao", 
-    "fonte_dados", "classe_indicador"
+    "fonte_dados", "classe_indicador", "link_ckan_dados"
   )
 
   # 3. Verificação de Schema (Colunas Faltantes)

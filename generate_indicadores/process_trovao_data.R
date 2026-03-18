@@ -6,9 +6,9 @@ library(writexl)
 library(arrow)
 
 # 1. Configurações e caminhos (Relativos à raiz do projeto)
-root_dir <- ".."
-dados_dir <- file.path(root_dir, "dados_tro")
-malhas_dir <- file.path(root_dir, "ibge_malhas")
+
+dados_dir <- file.path("dados_tro")
+malhas_dir <- file.path("ibge_malhas")
 
 arquivos_tro <- list.files(dados_dir, pattern = "^Dados_total_.*\\.xlsx$", full.names = TRUE)
 dicionario_path <- file.path(dados_dir, "Dicionário de variáveis Observatório ISM (2025).xlsx")
@@ -148,17 +148,18 @@ final_output <- all_data %>%
   left_join(dict, by = "variavel") %>%
   mutate(
     eixo = "Eixo 3", 
-    tags = "pobreza", 
+    projeto = "Indicadores ISM", 
     tipo_visualizacao = "Gráfico",
     unidade_medida = "Proporção/Índice", 
     valor_indicador = round(valor_indicador, 2),
     classe_indicador = "", 
     titulo_visualizacao = nome_indicador,
-    fonte_dados = "IBGE;PNADC (2016-2024)"
+    fonte_dados = "IBGE;PNADC (2016-2024)",
+    link_ckan_dados = "https://ipp.ufrn.br/labplan"
   ) %>%
   select(
     eixo,
-    tags,
+    projeto,
     ano,
     unidade_territorial,
     identificador_unidade_territorial,
@@ -169,7 +170,8 @@ final_output <- all_data %>%
     unidade_medida,
     classe_indicador,
     titulo_visualizacao,
-    fonte_dados
+    fonte_dados,
+    link_ckan_dados
   )
 
 # 7. Finalização

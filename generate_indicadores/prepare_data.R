@@ -1,17 +1,16 @@
 # prepare_data.R
 # Script para enriquecer, validar e converter os dados de indicadores para Parquet
 library(dplyr)
-library1(arrow)
+library(arrow)
 
-source("data_processor.R")
+source("generate_indicadores/data_processor.R")
 
 message("=== Iniciando Preparação de Dados (Validar e Converter) ===")
 
 # Caminhos relativos à raiz do projeto (assumindo que o script é rodado de dentro de generate_indicadores/)
-root_dir <- ".."
-input_file <- file.path(root_dir, "indicadores.xlsx")
-output_file <- file.path(root_dir, "indicadores.parquet")
-ibge_dir <- file.path(root_dir, "ibge_malhas")
+input_file <- file.path("indicadores.xlsx")
+output_file <- file.path("indicadores.parquet")
+ibge_dir <- file.path("ibge_malhas")
 
 if (!file.exists(input_file)) {
   stop("Erro: Arquivo fonte ", input_file, " não encontrado.")
@@ -27,6 +26,6 @@ message("Salvando em formato Parquet: ", output_file)
 write_parquet(dados_processados, output_file)
 
 # 3. Gerar metadados de legenda para Mapas
-source("gen_legend.R")
+source("generate_indicadores/gen_legend.R")
 
 message("PREPARAÇÃO CONCLUÍDA COM SUCESSO!")
