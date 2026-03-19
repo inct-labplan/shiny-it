@@ -92,7 +92,9 @@ build_indicator_map <- function(sf_map, indicator_name, subtitle = NULL) {
   
   # Metadados: Título e Fonte
   data_source <- if("fonte_dados" %in% names(sf_map)) sf_map$fonte_dados[1] else "Fonte: LabPlan"
-  map_title <- if("titulo_visualizacao" %in% names(sf_map)) sf_map$titulo_visualizacao[1] else indicator_name
+  
+  # Novo padrão de título: Nome do indicador - unidade territorial - ano
+  map_title <- paste0(indicator_name, " - ", sf_map$unidade_territorial[1], " - ", sf_map$ano[1])
   
   # Logo base64
   logo_uri <- get_labplan_logo_uri()
@@ -227,9 +229,14 @@ build_indicator_graph <- function(df_plot, indicator_name, unit_names, chart_typ
   
   logo_uri <- get_labplan_logo_uri()
   
-  # Título e Subtítulo
+  # Novo padrão de título: Nome do indicador - unidade territorial - intervalo de anos
+  years_range <- range(df_plot$ano)
+  years_label <- if(years_range[1] == years_range[2]) years_range[1] else paste0(years_range[1], "-", years_range[2])
+  territorial_unit_label <- paste(unique(df_plot$unidade_territorial), collapse = " / ")
+  chart_title <- paste0(indicator_name, " - ", territorial_unit_label, " - ", years_label)
+
+  # Subtítulo (Unidades específicas selecionadas)
   display_unit <- if(length(unit_names) == 1) unit_names else paste(length(unit_names), "Unidades Selecionadas")
-  chart_title <- if("titulo_visualizacao" %in% names(df_plot)) df_plot$titulo_visualizacao[1] else indicator_name
   
   # Renderização baseada em ano (X) e valor (Y)
   p <- plot_ly(df_plot, 
