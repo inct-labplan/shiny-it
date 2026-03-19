@@ -1,6 +1,16 @@
 library(sf)
 library(bs4Dash)
 library(readxl)
+
+# Helper para tooltip customizado
+custom_tooltip <- function(text) {
+  tags$span(
+    class = "custom-tooltip-wrapper",
+    icon("question-circle"),
+    tags$span(class = "custom-tooltip-text", text)
+  )
+}
+
 library(plotly)
 library(dplyr)
 library(arrow)

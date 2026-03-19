@@ -5,8 +5,6 @@
 # Used to import your ui and server components; initializes the app.
 ###################
 
-
-
 library(shiny)
 library(dplyr)
 library(leaflet)
@@ -22,3 +20,6 @@ source('./server.R')
 
 # Inicializar aplicação
 shinyApp(ui = ui, server = server)
+
+
+

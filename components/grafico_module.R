@@ -49,12 +49,16 @@ grafico_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_unidade"),
-                selectInput(ns("unidade_sel"), "4. Abrangência", 
-                            choices = NULL, 
+                div(style = "display: flex; align-items: center; margin-bottom: 5px;",
+                  tags$label("4. Abrangência", class = "control-label", style = "margin-bottom: 0; margin-right: 5px;"),
+                  custom_tooltip("Você pode selecionar múltiplas abrangências para comparar diferentes recortes territoriais no gráfico.")
+                ),
+                selectInput(ns("unidade_sel"),
+                            label = NULL,
+                            choices = NULL,
                             multiple = TRUE)
             )
           ),
-          
           shinyjs::hidden(
             div(id = ns("step_nome_unidade"),
                 selectInput(ns("nome_unidade_sel"), "5. Unidade", 
@@ -78,6 +82,11 @@ grafico_ui <- function(id) {
             actionButton(ns("gerar_viz"), "Gerar Gráfico", 
                          class = "btn-primary btn-block",
                          icon = icon("play"))
+          ),
+          shinyjs::hidden(
+            div(id = ns("ckan_container"),
+                uiOutput(ns("link_ckan"))
+            )
           )
         )
       ),
@@ -236,12 +245,36 @@ grafico_server <- function(id, dados_indicadores) {
     observeEvent(list(input$eixo_sel, input$projeto_sel, input$indicador_sel, input$unidade_sel, input$nome_unidade_sel, input$tipo_grafico_sel), {
       shinyjs::hide("viz_output_container")
       shinyjs::show("viz_placeholder")
+      shinyjs::hide("ckan_container")
     })
     
     # Trigger de Visualização
     observeEvent(input$gerar_viz, {
       shinyjs::hide("viz_placeholder")
       shinyjs::show("viz_output_container")
+      shinyjs::show("ckan_container")
+    })
+    
+    # Link CKAN
+    output$link_ckan <- renderUI({
+      req(input$indicador_sel)
+      df_link <- dados_indicadores %>%
+        filter(eixo == input$eixo_sel,
+               projeto == input$projeto_sel,
+               nome_indicador == input$indicador_sel) %>%
+        pull(link_ckan_dados) %>%
+        unique()
+      
+      if (length(df_link) > 0 && !is.na(df_link) && df_link != "") {
+        tags$div(
+          style = "margin-top: 20px; font-size: 0.85rem;",
+          tags$hr(),
+          tags$p(
+            tags$b("Acesse os dados da visualização no "),
+            tags$a(href = df_link, target = "_blank", "CKAN", icon("external-link-alt"))
+          )
+        )
+      }
     })
     
     # Renderização

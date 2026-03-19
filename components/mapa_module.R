@@ -22,7 +22,7 @@ mapa_ui <- function(id) {
     fluidRow(
       # Coluna de Filtros (Padrão Anterior)
       bs4Card(
-        title = "Filtros do Mapa",
+        title = "Filtros do Mapa Interativo",
         width = 3,
         status = "primary",
         solidHeader = TRUE,
@@ -49,12 +49,16 @@ mapa_ui <- function(id) {
           
           shinyjs::hidden(
             div(id = ns("step_granularidade"),
-                selectInput(ns("granularidade_sel"), "4. Granularidade", 
-                            choices = NULL, 
+                div(style = "display: flex; align-items: center; margin-bottom: 5px;",
+                  tags$label("4. Granularidade", class = "control-label", style = "margin-bottom: 0; margin-right: 5px;"),
+                  custom_tooltip("Define a geometria que será representada no mapa interativo (ex: ao selecionar 'Município', o mapa interativo exibirá geometrias de municípios).")
+                ),
+                selectInput(ns("granularidade_sel"),
+                            label = NULL,
+                            choices = NULL,
                             multiple = FALSE)
             )
           ),
-          
           shinyjs::hidden(
             div(id = ns("step_recorte"),
                 selectInput(ns("recorte_sel"), "5. Recorte Territorial", 
@@ -80,29 +84,34 @@ mapa_ui <- function(id) {
           div(style = "flex-grow: 1;"),
           br(),
           shinyjs::hidden(
-            actionButton(ns("gerar_viz"), "Gerar Mapa", 
+            actionButton(ns("gerar_viz"), "Gerar Mapa Interativo", 
                          class = "btn-primary btn-block",
                          icon = icon("play"))
+          ),
+          shinyjs::hidden(
+            div(id = ns("ckan_container"),
+                uiOutput(ns("link_ckan"))
+            )
           )
         )
       ),
       
       # Coluna de Visualização
       bs4Card(
-        title = "Mapa de Indicadores",
+        title = "Mapa Interativo de Indicadores",
         width = 9,
         status = "white",
         minHeight = "600px",
         
         div(id = ns("viz_placeholder"),
             style = "height: 550px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ddd; color: #999;",
-            h5("Selecione os filtros e clique em 'Gerar Mapa'")),
+            h5("Selecione os filtros e clique em 'Gerar Mapa Interativo'")),
         
         shinyjs::hidden(
           div(id = ns("viz_output_container"),
               div(style = "margin-bottom: 10px; display: flex; justify-content: flex-end;",
                   shinyjs::hidden(
-                    actionButton(ns("download_mapa"), "Baixar Mapa", 
+                    actionButton(ns("download_mapa"), "Baixar Mapa Interativo", 
                                  class = "btn-info btn-sm",
                                  icon = icon("camera"))
                   )
@@ -369,6 +378,7 @@ mapa_server <- function(id, dados_indicadores) {
     observeEvent(list(input$eixo_sel, input$projeto_sel, input$indicador_sel, input$granularidade_sel, input$recorte_sel, input$unidade_recorte_sel, input$ano_sel), {
       shinyjs::hide("viz_output_container")
       shinyjs::show("viz_placeholder")
+      shinyjs::hide("ckan_container")
     })
     
     # Trigger de Visualização
@@ -376,6 +386,29 @@ mapa_server <- function(id, dados_indicadores) {
       shinyjs::hide("viz_placeholder")
       shinyjs::show("viz_output_container")
       shinyjs::show("download_mapa")
+      shinyjs::show("ckan_container")
+    })
+    
+    # Link CKAN
+    output$link_ckan <- renderUI({
+      req(input$indicador_sel)
+      df_link <- dados_indicadores %>%
+        filter(eixo == input$eixo_sel,
+               projeto == input$projeto_sel,
+               nome_indicador == input$indicador_sel) %>%
+        pull(link_ckan_dados) %>%
+        unique()
+      
+      if (length(df_link) > 0 && !is.na(df_link) && df_link != "") {
+        tags$div(
+          style = "margin-top: 20px; font-size: 0.85rem;",
+          tags$hr(),
+          tags$p(
+            tags$b("Acesse os dados da visualização no "),
+            tags$a(href = df_link, target = "_blank", "CKAN", icon("external-link-alt"))
+          )
+        )
+      }
     })
     
     # Download
