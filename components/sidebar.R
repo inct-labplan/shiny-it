@@ -6,18 +6,16 @@
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
+    id = "sidebarmenu",
     menuItem(
-      text = "Painéis", 
-      icon = icon("dashboard"),
-      tabName = "uiro_bi", # Parent tabName for main menu item
-      startExpanded = FALSE,
-      menuSubItem(
-        text = "Eixo-1",
-        tabName = "it-mapa"  # Sub tab for "Empresas"
-      ),
-      menuSubItem(text = "Eixo-2", tabName = "eixo2-graficos")
-    )
+      text = "Mapa", 
+      icon = icon("map"),
+      tabName = "mapa"
+    ),
+    menuItem(
+      text = "Gráfico", 
+      icon = icon("chart-bar"),
+      tabName = "grafico"
     )
   )
-
-
+)

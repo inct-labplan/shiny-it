@@ -7,7 +7,10 @@
 
 library(shiny)
 library(dplyr)
-
+library(leaflet)
+library(htmlwidgets)
+library(shinyscreenshot)
+library(shinyjs)
 # Carregar componentes globais
 source('./global.R')
 
@@ -17,3 +20,6 @@ source('./server.R')
 
 # Inicializar aplicação
 shinyApp(ui = ui, server = server)
+
+
+
