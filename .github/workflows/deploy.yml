@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feat/vpn-gated-deploy
+      - feat/docker-deploy
 
 jobs:
   deploy:
@@ -95,6 +96,7 @@ jobs:
         env:
           SSHPASS: ${{ secrets.VM_PASSWORD }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
         run: |
           # Script is piped over the (encrypted) SSH channel via stdin so the
           # token never appears on a command line. The token is short-lived
@@ -117,7 +119,7 @@ jobs:
           cd "\$REPO_DIR"
           git remote set-url origin "\$AUTH_URL"
           git fetch --all
-          git reset --hard origin/main
+          git reset --hard "origin/${DEPLOY_BRANCH}"
           git remote set-url origin "\$CLEAN_URL"
 
           # (Re)build and start the container; prune dangling images afterwards.
