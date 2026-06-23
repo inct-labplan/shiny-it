@@ -1,0 +1,133 @@
+name: Deploy shiny-it to IPP VM
+
+on:
+  push:
+    branches:
+      - main
+      - feat/vpn-gated-deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Install OpenVPN + tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn openvpn-systemd-resolved sshpass
+
+      - name: Materialize VPN credentials
+        env:
+          OVPN_P12_B64: ${{ secrets.OVPN_P12_B64 }}
+          OVPN_TLS_KEY: ${{ secrets.OVPN_TLS_KEY }}
+          OVPN_USER: ${{ secrets.OVPN_USER }}
+          OVPN_PASS: ${{ secrets.OVPN_PASS }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/vpn"
+          cd "$RUNNER_TEMP/vpn"
+
+          # Binary client cert (p12) — stored as base64 secret
+          printf '%s' "$OVPN_P12_B64" | base64 -d -i > client.p12
+
+          # tls-auth static key — stored verbatim as a multiline secret
+          printf '%s\n' "$OVPN_TLS_KEY" > tls.key
+
+          # auth-user-pass file: UFRN username on line 1, password on line 2
+          printf '%s\n%s\n' "$OVPN_USER" "$OVPN_PASS" > auth.txt
+
+          chmod 600 client.p12 tls.key auth.txt
+
+          # CI-adapted OpenVPN config (no inline secrets; references the files above)
+          cat > client.ovpn <<'EOF'
+          dev tun
+          persist-tun
+          persist-key
+          data-ciphers AES-128-GCM:AES-256-CBC:AES-256-GCM:AES-128-CBC
+          data-ciphers-fallback AES-256-GCM
+          auth SHA256
+          tls-client
+          client
+          resolv-retry infinite
+          remote vpncom1.info.ufrn.br 1194 udp4
+          setenv opt block-outside-dns
+          nobind
+          verify-x509-name "ufrnServerCA" name
+          remote-cert-tls server
+          explicit-exit-notify
+          auth-user-pass auth.txt
+          pkcs12 client.p12
+          tls-auth tls.key 1
+          EOF
+
+      - name: Connect to VPN
+        run: |
+          cd "$RUNNER_TEMP/vpn"
+
+          # UFRN's UDP handshake is occasionally flaky from GitHub runners, so we
+          # make a few full attempts (fresh openvpn process each time).
+          for attempt in 1 2 3; do
+            echo "::group::VPN attempt $attempt"
+            sudo openvpn --config client.ovpn \
+              --daemon --log "$RUNNER_TEMP/vpn/openvpn.log" \
+              --writepid "$RUNNER_TEMP/vpn/openvpn.pid"
+
+            echo "Waiting for tunnel to reach ${{ secrets.VM_HOST }}:${{ secrets.VM_PORT }}..."
+            for i in $(seq 1 40); do
+              if nc -z -w 3 "${{ secrets.VM_HOST }}" "${{ secrets.VM_PORT }}"; then
+                echo "VPN up — VM reachable."
+                echo "::endgroup::"
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "Attempt $attempt failed. OpenVPN log:"
+            sudo cat "$RUNNER_TEMP/vpn/openvpn.log" || true
+            sudo kill "$(cat "$RUNNER_TEMP/vpn/openvpn.pid")" 2>/dev/null || true
+            echo "::endgroup::"
+          done
+
+          echo "::error::VPN did not establish / VM unreachable after 3 attempts."
+          exit 1
+
+      - name: Clone / update repo and deploy over VPN
+        env:
+          SSHPASS: ${{ secrets.VM_PASSWORD }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Script is piped over the (encrypted) SSH channel via stdin so the
+          # token never appears on a command line. The token is short-lived
+          # (valid only for this run) and scrubbed from the stored remote at
+          # the end, so nothing sensitive persists on the VM.
+          sshpass -e ssh -p "${{ secrets.VM_PORT }}" \
+            -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            "${{ secrets.VM_USERNAME }}@${{ secrets.VM_HOST }}" \
+            "bash -s" <<EOF
+          set -e
+          REPO_DIR="\$HOME/shiny-it"
+          AUTH_URL="https://x-access-token:${GH_TOKEN}@github.com/inct-labplan/shiny-it.git"
+          CLEAN_URL="https://github.com/inct-labplan/shiny-it.git"
+
+          if [ ! -d "\$REPO_DIR/.git" ]; then
+            mkdir -p "\$REPO_DIR"
+            git clone "\$AUTH_URL" "\$REPO_DIR"
+          fi
+
+          cd "\$REPO_DIR"
+          git remote set-url origin "\$AUTH_URL"
+          git fetch --all
+          git reset --hard origin/main
+          git remote set-url origin "\$CLEAN_URL"
+
+          # (Re)build and start the container; prune dangling images afterwards.
+          docker compose up -d --build
+          docker image prune -f
+          EOF
+
+      - name: Disconnect VPN
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/vpn/openvpn.pid" ]; then
+            sudo kill "$(cat "$RUNNER_TEMP/vpn/openvpn.pid")" || true
+          fi
