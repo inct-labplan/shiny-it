@@ -61,6 +61,16 @@ jobs:
           tls-auth tls.key 1
           EOF
 
+      - name: DEBUG verify decoded credentials (hashes only, no secret leak)
+        run: |
+          cd "$RUNNER_TEMP/vpn"
+          echo "client.p12 sha256:   $(sha256sum client.p12 | awk '{print $1}')"
+          echo "expected (local):    12cc840ed8fd122d1881c3a541b092d65c0ead41cc02229a8e41d62150c3e029"
+          echo "tls.key sha256 (norm): $(sed -z 's/\n*$//' tls.key | sha256sum | awk '{print $1}')"
+          echo "expected (local):      b56aee059a2f45644df463e985c995bcf0a115d8525b9b5114820eb9a033061d"
+          echo "tls.key BEGIN/END markers: $(grep -cE 'BEGIN OpenVPN Static key|END OpenVPN Static key' tls.key)"
+          echo "p12 bytes: $(wc -c < client.p12)   tls.key lines: $(wc -l < tls.key)"
+
       - name: Connect to VPN
         run: |
           cd "$RUNNER_TEMP/vpn"
