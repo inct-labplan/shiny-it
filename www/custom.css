@@ -1,0 +1,274 @@
+/* ================================================
+   CSS Personalizado LABPLAN para Shiny (bs4Dash)
+   Baseado no Guia de Marca LABPLAN 2024
+   ================================================ */
+
+/* =====================================
+   1. CORES DA MARCA
+   ===================================== */
+:root {
+  /* Cores Principais */
+  --labplan-azul-escuro: #1C3162;
+  --labplan-azul-principal: #053984;
+  --labplan-verde: #C0E8A3;
+  --labplan-verde-escuro: #7CC351;
+  --labplan-rosa: #FB7C7B;
+  
+  /* Cores Secundárias */
+  --labplan-azul-claro: #5FC2EB;
+  --labplan-azul-medio: #0088D0;
+  --labplan-verde-medio: #5C8354;
+  --labplan-rosa-claro: #FFB9B9;
+  --labplan-amarelo: #FFCB52;
+  --labplan-bege: #F2DDAC;
+  
+  /* Cores Neutras */
+  --labplan-branco: #FFFFFF;
+  --labplan-cinza-claro: #D1E0ED;
+  --labplan-cinza-medio: #CBC0BE;
+  --labplan-cinza-escuro: #6C6C6C;
+  --labplan-preto: #2F2E2F;
+}
+
+/* =====================================
+   2. TIPOGRAFIA
+   ===================================== */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&display=swap');
+
+body, .wrapper, .main-sidebar, .main-header, .content-wrapper, .form-control, .selectize-input {
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  color: var(--labplan-preto);
+}
+
+h1, h2, h3, h4, h5, h6, .card-title, .brand-text {
+  font-family: 'Rubik', sans-serif !important;
+  font-weight: 700 !important;
+  color: var(--labplan-azul-escuro) !important;
+}
+
+.brand-text {
+  color: var(--labplan-branco) !important;
+}
+
+/* =====================================
+   3. HEADER E NAVEGAÇÃO SUPERIOR
+   ===================================== */
+.main-header {
+  background: linear-gradient(135deg, var(--labplan-azul-escuro) 0%, var(--labplan-azul-principal) 100%) !important;
+  border-bottom: none !important;
+  position: relative;
+}
+
+.main-header .nav-link {
+  color: var(--labplan-branco) !important;
+}
+
+/* Padrão decorativo inspirado nos planos sobrepostos */
+.main-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--labplan-verde) 0%, 
+    var(--labplan-verde) 25%, 
+    var(--labplan-rosa) 25%, 
+    var(--labplan-rosa) 50%, 
+    var(--labplan-amarelo) 50%, 
+    var(--labplan-amarelo) 75%, 
+    var(--labplan-azul-claro) 75%, 
+    var(--labplan-azul-claro) 100%
+  );
+}
+
+.brand-link {
+  background: var(--labplan-azul-escuro) !important;
+  color: var(--labplan-branco) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 57px !important;
+}
+
+.brand-image {
+  height: 38px !important; /* Altura fixa para evitar cortes */
+  width: auto !important;
+  margin-right: 10px !important;
+  background-color: var(--labplan-branco) !important;
+  padding: 2px !important;
+  border-radius: 4px !important;
+  object-fit: contain !important; /* Garante que a imagem caiba */
+}
+
+.brand-link .brand-text {
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  align-self: center !important;
+}
+
+/* =====================================
+   4. SIDEBAR (Navegação Lateral)
+   ===================================== */
+.main-sidebar, .sidebar {
+  background-color: var(--labplan-azul-escuro) !important;
+}
+
+/* Links da sidebar */
+.nav-sidebar .nav-link {
+  color: var(--labplan-branco) !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease;
+}
+
+.nav-sidebar .nav-item > .nav-link.active {
+  background-color: var(--labplan-verde) !important;
+  color: var(--labplan-azul-escuro) !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.nav-sidebar .nav-link:hover:not(.active) {
+  background-color: rgba(255,255,255,0.1) !important;
+  color: var(--labplan-verde) !important;
+}
+
+/* =====================================
+   5. CARDS / BOXES
+   ===================================== */
+.card-primary.card-outline {
+  border-top: 3px solid var(--labplan-verde-escuro) !important;
+}
+
+.card-primary:not(.card-outline) > .card-header {
+  background: linear-gradient(135deg, var(--labplan-azul-escuro) 0%, var(--labplan-azul-principal) 100%) !important;
+  color: var(--labplan-branco) !important;
+}
+
+.card-primary:not(.card-outline) > .card-header .card-title {
+  color: var(--labplan-branco) !important;
+}
+
+/* =====================================
+   6. BOTÕES
+   ===================================== */
+.btn-primary {
+  background-color: var(--labplan-azul-principal) !important;
+  border-color: var(--labplan-azul-principal) !important;
+  color: var(--labplan-branco) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: var(--labplan-verde-escuro) !important;
+  border-color: var(--labplan-verde-escuro) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 195, 81, 0.3) !important;
+}
+
+/* =====================================
+   7. INPUTS E FORMULÁRIOS
+   ===================================== */
+.form-control:focus, .selectize-input.focus {
+  border-color: var(--labplan-verde-escuro) !important;
+  box-shadow: 0 0 0 3px rgba(124, 195, 81, 0.2) !important;
+}
+
+.control-label {
+  font-weight: 600 !important;
+  color: var(--labplan-azul-escuro) !important;
+}
+
+/* =====================================
+   8. LINKS
+   ===================================== */
+a {
+  color: var(--labplan-azul-principal);
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  color: var(--labplan-verde-escuro);
+  text-decoration: none;
+}
+
+/* =====================================
+   9. LEAFLET CUSTOM CONTROLS
+   ===================================== */
+.leaflet-top {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    pointer-events: none;
+}
+
+.leaflet-top.leaflet-left {
+    width: 100% !important;
+    pointer-events: none;
+}
+
+.leaflet-control-title {
+    position: absolute !important;
+    top: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+}
+
+/* =====================================
+   10. CUSTOM TOOLTIP
+   ===================================== */
+.custom-tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  margin-left: 8px;
+  color: #17a2b8;
+  font-weight: bold;
+  transition: color 0.2s ease-in-out;
+}
+
+.custom-tooltip-wrapper:hover {
+  color: #0056b3;
+}
+
+.custom-tooltip-text {
+  display: none;
+  width: 350px;
+  background-color: #343a40;
+  color: #ffffff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 15px;
+  position: absolute;
+  z-index: 10000;
+  bottom: 150%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px !important;
+  line-height: 1.3;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+/* Seta do Tooltip */
+.custom-tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -8px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: #343a40 transparent transparent transparent;
+}
+
+.custom-tooltip-wrapper:hover .custom-tooltip-text {
+  display: block;
+}
