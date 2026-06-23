@@ -1,0 +1,26 @@
+# VCS
+.git
+.gitignore
+
+# Biblioteca/staging do renv (reinstalada no build a partir do renv.lock)
+renv/library
+renv/staging
+renv/local
+
+# Geração de dados (demo) e fontes brutas — não usados em runtime
+dados_tro
+generate_indicadores
+download_ibge.R
+indicadores.xlsx
+
+# Testes e artefatos de dev
+tests
+rsconnect
+deploy.R
+*.Rproj
+.Rproj.user
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml

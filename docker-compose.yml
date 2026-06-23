@@ -1,0 +1,15 @@
+services:
+  shiny-it:
+    build: .
+    image: shiny-it:latest
+    container_name: shiny-it
+    ports:
+      - "3838:3838"
+    restart: unless-stopped
+    healthcheck:
+      # Considera saudável quando o servidor Shiny aceita conexões na 3838
+      test: ["CMD", "R", "-e", "close(url('http://127.0.0.1:3838'))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

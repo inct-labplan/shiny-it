@@ -48,8 +48,8 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# Malhas do IBGE
-ibge_malhas/
+# Malhas do IBGE: dados (.parquet) são versionados; scripts auxiliares não
+ibge_malhas/*.sh
 dados_tro/
 # Test debug outputs
 tests/testthat/debug_outputs
