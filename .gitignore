@@ -51,6 +51,12 @@ rsconnect/
 # Malhas do IBGE
 ibge_malhas/
 dados_tro/
+dados_felipe/
+dados_jaine/
+dados_rodrigo/
+dados_wagner/
+dados_yohana/
+
 # Test debug outputs
 tests/testthat/debug_outputs
 .Rproj.user
