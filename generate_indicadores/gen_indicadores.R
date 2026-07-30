@@ -23,7 +23,7 @@ final_output <- final_output %>%
 # 3. Processar Dados PIB municipal (Jaine)
 # O script cria o data frame 'pib_output' em memória
 source("generate_indicadores/process_jaine_data.R", local = TRUE)
-<<<<<<< HEAD
+
 
 # 4. Processar Dados Domiciliares municipal (Jaine)
 # O script cria o data frame 'dom_output' em memória
@@ -36,7 +36,7 @@ source("generate_indicadores/process_jaine_data_indicadores_demo.R", local = TRU
 # 5. Processar Dados de indicadores demográficos (Jaine)
 # O script cria o data frame 'energy_output' em memória
 source("generate_indicadores/process_felipe_data.R", local = TRUE)
-=======
+
 pib_output <- pib_output %>%
   mutate(ano = as.character(ano))
 # 4. Processar Dados Domiciliares municipal (Jaine)
@@ -76,7 +76,6 @@ estabelecimentos_output <- estabelecimentos_output %>%
 source("generate_indicadores/process_yohana_data_vinculos.R", local = TRUE)
 vinculos_output <- vinculos_output %>%
   mutate(ano = as.character(ano))
->>>>>>> d42dca1 (adicionando processamento de dados)
 
 # 6. Consolidação Final
 message("\n--- Consolidando Tabelas ---")
@@ -86,16 +85,13 @@ indicadores_consolidado <- bind_rows(
   pib_output,
   dom_output,
   ind_demo,
-<<<<<<< HEAD
-  energy_output
-=======
   energy_output,
   pib_cnpj_output,
   exportacao_output,
   proagro_output,
   estabelecimentos_output,
   vinculos_output
->>>>>>> d42dca1 (adicionando processamento de dados)
+
 ) %>%
   # Transforma o ano em texto para limpar a linha do tempo do gráfico
   mutate(ano = as.character(ano))

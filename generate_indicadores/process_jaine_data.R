@@ -128,11 +128,11 @@ processar_planilha <- function(caminho) {
     # Converte todas as colunas que começam com "vab_"
     mutate(across(starts_with("vab_"), as.numeric))
   data_filtered <- data_filtered %>%
-<<<<<<< HEAD
+
     # Converte todas as colunas que começam com "vab_"
-=======
+
     # Converte todas as colunas que começam com "impostos_"
->>>>>>> d42dca1 (adicionando processamento de dados)
+
     mutate(across(starts_with("impostos_"), as.numeric))
   data_filtered <- data_filtered %>%
     # Converte todas as colunas que começam com "vab_"
