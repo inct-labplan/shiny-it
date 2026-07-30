@@ -36,7 +36,7 @@ load_and_validate_indicators <- function(df_or_path) {
 
   # 5. Tipagem e Conversão
   df$valor_indicador <- as.numeric(df$valor_indicador)
-  df$ano <- as.integer(df$ano)
+  #df$ano <- as.integer(df$ano)
   
   # 6. Validação de Domínio (tipo_visualizacao)
   valores_validos_viz <- c("Mapa", "Gráfico")

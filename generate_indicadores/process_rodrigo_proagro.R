@@ -6,11 +6,11 @@ library(writexl)
 library(arrow)
 
 # 1. Configurações e caminhos (Relativos à raiz do projeto)
-dados_dir <- file.path("dados_jaine")
+dados_dir <- file.path("dados_rodrigo")
 malhas_dir <- file.path("ibge_malhas")
 
-arquivos_jaine <- list.files(dados_dir, pattern = "^economia_pib_municipiosbr_.*\\.xlsx$", full.names = TRUE)
-dicionario_path <- file.path(dados_dir, "Dicionário de variáveis Jaine.xlsx")
+arquivos_rodrigo_proagro <- list.files(dados_dir, pattern = "Eixo1_Dados_Proagro_reorganizado.xlsx", full.names = TRUE)
+dicionario_path <- file.path(dados_dir, "Dicionário de variáveis Rodrigo.xlsx")
 
 # 2. Carregar Tabelas de Referência (Malhas)
 df_rm_ref <- read_parquet(file.path(malhas_dir, "BR_RegiaoMetropolitana_2024.parquet"))
@@ -81,28 +81,26 @@ dict <- read_xlsx(dicionario_path) %>%
 
 # 4. Função para processar cada planilha anual
 processar_planilha <- function(caminho) {
-  ano_val <- as.numeric(str_extract(basename(caminho), "\\d{4}"))
   
   data <- read_xlsx(caminho)
   
-  # AJUSTE 1: Incluindo "Município" no filtro e mapeando a unidade territorial
   data_filtered <- data %>%
-    filter(recorte_analise %in% c("UF", "Capital", "RM_RIDE", "#Total")) %>%
+    filter(recorte_analise %in% c("UF", "Região", "Capital", "RM_RIDE", "Município", "#Total")) %>%
     mutate(unidade_territorial = case_when(
       recorte_analise == "UF" ~ "Estado",
+      recorte_analise == "Região" ~ "Região",
       recorte_analise == "Capital" ~ "Município",
       recorte_analise == "RM_RIDE" ~ "Região Metropolitana",
       recorte_analise == "Município" ~ "Município",
       recorte_analise == "#Total" ~ "Brasil",
     ))
-  colunas_para_deletar <- c("atividade_maior_vab", "atividade_segundomaior_vab", "atividade_terceiromaior_vab", "indice_deflacao", "pib_deflacionado", "taxa_crescimento_pib")
-  data_filtered <- data_filtered %>% 
-    select(-all_of(colunas_para_deletar))
+  
   # Atribuir identificadores corretos
   data_filtered <- data_filtered %>%
     mutate(
       nome_busca = case_when(
         recorte_analise == "UF" ~ conteudo,
+        recorte_analise == "Região" ~ conteudo, 
         recorte_analise == "Capital" ~ str_replace(conteudo, "Município de ", "") %>% str_replace(" \\(..\\)$", ""),
         recorte_analise == "RM_RIDE" ~ recode(conteudo, !!!rm_mapping),
         recorte_analise == "Município" ~ conteudo,
@@ -110,7 +108,7 @@ processar_planilha <- function(caminho) {
       )
     )
   
-  # AJUSTE 2: Retornando o left_join com df_muni_ref usando chave dupla (Nome + UF)
+  # Joins tradicionais para os demais níveis
   data_filtered <- data_filtered %>%
     left_join(df_uf_ref %>% select(nome_unidade_territorial, id_uf = identificador_unidade_territorial), 
               by = c("nome_busca" = "nome_unidade_territorial")) %>%
@@ -118,50 +116,38 @@ processar_planilha <- function(caminho) {
               by = c("nome_busca" = "nome_unidade_territorial")) %>%
     mutate(identificador_unidade_territorial = case_when(
       recorte_analise == "UF" ~ id_uf,
-      recorte_analise == "Capital" ~ recode(nome_busca, !!!capital_mapping),
       recorte_analise == "RM_RIDE" ~ id_rm,
-      recorte_analise == "#Total" ~ "BR"
+      recorte_analise == "#Total" ~ "BR",
+      recorte_analise %in% c("Município", "Capital") ~ as.character(cod_recorte),
+      TRUE ~ as.character(cod_recorte)
     ))
   
-  # Preparação das colunas do Pivot
-  data_filtered <- data_filtered %>%
-    # Converte todas as colunas que começam com "vab_"
-    mutate(across(starts_with("vab_"), as.numeric))
-  data_filtered <- data_filtered %>%
-<<<<<<< HEAD
-    # Converte todas as colunas que começam com "vab_"
-=======
-    # Converte todas as colunas que começam com "impostos_"
->>>>>>> d42dca1 (adicionando processamento de dados)
-    mutate(across(starts_with("impostos_"), as.numeric))
-  data_filtered <- data_filtered %>%
-    # Converte todas as colunas que começam com "vab_"
-    mutate(across(starts_with("pib"), as.numeric))
-  cols_to_pivot <- names(data_filtered)[which(names(data_filtered) == "vab_agropecuaria_pcor_rsmil"):ncol(data_filtered)]
+  # Identifica colunas numéricas de indicadores a partir de "ALFACE"
+  cols_to_pivot <- names(data_filtered)[which(names(data_filtered) == "ALFACE"):ncol(data_filtered)]
   
-  cols_to_pivot <- setdiff(cols_to_pivot, c("unidade_territorial", "identificador_unidade_territorial", "nome_busca", "id_uf", "id_muni", "id_rm"))
-  
+  cols_to_pivot <- setdiff(cols_to_pivot, c("unidade_territorial", "identificador_unidade_territorial", 
+                                            "nome_busca", "id_uf", "id_muni", "id_rm", "ano"))
+  # Força conversão para numérico
   data_long <- data_filtered %>%
     pivot_longer(
       cols = all_of(cols_to_pivot),
       names_to = "variavel",
       values_to = "valor_indicador"
-    ) %>%
-    mutate(ano = ano_val)
+    )
   
   return(data_long)
 }
 
 # 5. Processar todos os anos e juntar
-all_data <- lapply(arquivos_jaine, processar_planilha) %>%
+all_data <- lapply(arquivos_rodrigo_proagro, processar_planilha) %>%
   bind_rows()
 
 # 6. Join com Dicionário e formatação final
-pib_output <- all_data %>%
+proagro_output <- all_data %>%
   left_join(dict, by = "variavel") %>%
   mutate(
-    eixo = "Eixo 4", 
-    projeto = "PIB Municipios", 
+    eixo = "Eixo 1", 
+    projeto = "PROAGRO", 
     tipo_visualizacao = "Gráfico",
     unidade_medida = "Proporção/Índice", 
     valor_indicador = round(valor_indicador, 2),
@@ -190,5 +176,5 @@ pib_output <- all_data %>%
 # 7. Finalização
 message("------------------------------------------")
 message("Processamento Socioeconômico concluído!")
-message("Total de registros: ", nrow(pib_output))
+message("Total de registros: ", nrow(proagro_output))
 message("------------------------------------------")
